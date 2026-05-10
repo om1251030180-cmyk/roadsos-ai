@@ -1,0 +1,641 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Colors */
+  --background: #02050b;
+  --foreground: #f4f7fb;
+  --color-primary: #22d3ee;
+  --color-secondary: #a855f7;
+  --color-accent: #fbbf24;
+  --color-danger: #ef4444;
+  
+  /* Glassmorphism */
+  --glass-light: rgba(255, 255, 255, 0.08);
+  --glass-dark: rgba(0, 0, 0, 0.4);
+  --blur-sm: blur(12px);
+  --blur-md: blur(24px);
+  --blur-lg: blur(32px);
+  
+  /* Spacing Scale */
+  --space-xs: 2px;
+  --space-sm: 4px;
+  --space-md: 8px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 60px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 90px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 40px rgba(34, 211, 238, 0.4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #02050b;
+    --foreground: #f4f7fb;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Inter, Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.8), rgba(168, 85, 247, 0.8));
+  border-radius: 999px;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+  color: #f8fafc;
+}
+
+.noise-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent 56%);
+  background-size: 100% 6px, 6px 100%, 100% 100%;
+  mix-blend-mode: screen;
+}
+
+.glass-panel {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(2, 6, 23, 0.54));
+  backdrop-filter: blur(22px);
+  box-shadow: 0 16px 60px rgba(1, 6, 20, 0.38);
+}
+
+.glass-panel-bright {
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  background: linear-gradient(180deg, rgba(8, 15, 33, 0.86), rgba(4, 10, 24, 0.62));
+  backdrop-filter: blur(24px) saturate(1.15);
+  box-shadow:
+    0 18px 70px rgba(2, 6, 23, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.holographic-ring {
+  position: relative;
+}
+
+.holographic-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.6), rgba(168, 85, 247, 0.35), rgba(251, 191, 36, 0.5));
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.scanline {
+  position: absolute;
+  inset-inline: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.85), rgba(236, 72, 153, 0.45), transparent);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.8);
+  animation: scanline 7s linear infinite;
+}
+
+@keyframes scanline {
+  from {
+    top: -8%;
+  }
+  to {
+    top: 108%;
+  }
+}
+
+.float-slow {
+  animation: floatSlow 10s ease-in-out infinite;
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.pulse-soft {
+  animation: pulseSoft 3.5s ease-in-out infinite;
+}
+
+@keyframes pulseSoft {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* ==================== CINEMATIC ANIMATIONS ==================== */
+
+@keyframes emergencyPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0.2);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 24px rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes emergencyBreathe {
+  0%, 100% {
+    opacity: 0.8;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes holoFloat {
+  0%, 100% {
+    transform: translateY(0) rotateZ(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotateZ(1deg);
+  }
+  75% {
+    transform: translateY(4px) rotateZ(-1deg);
+  }
+}
+
+@keyframes holoGlow {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.4), inset 0 0 30px rgba(34, 211, 238, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(34, 211, 238, 0.6), inset 0 0 50px rgba(34, 211, 238, 0.2);
+  }
+}
+
+@keyframes pulseRings {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes scanWave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes waveAround {
+  0% {
+    transform: rotate(0deg) translateX(30px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(30px) rotate(-360deg);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.8));
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+
+.emergency-pulse {
+  animation: emergencyPulse 1.5s ease-out infinite;
+}
+
+.emergency-breathe {
+  animation: emergencyBreathe 2s ease-in-out infinite;
+}
+
+.holo-float {
+  animation: holoFloat 6s ease-in-out infinite;
+}
+
+.holo-glow {
+  animation: holoGlow 3s ease-in-out infinite;
+}
+
+.pulse-rings {
+  animation: pulseRings 1.5s ease-out;
+}
+
+.scan-wave {
+  animation: scanWave 2s linear infinite;
+}
+
+.shimmer-effect {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background-size: 1000px 100%;
+  animation: shimmer 3s infinite;
+}
+
+.wave-around {
+  animation: waveAround 3s linear infinite;
+}
+
+.glow-effect {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.float-anim {
+  animation: float 3s ease-in-out infinite;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.slide-in-down {
+  animation: slideInDown 0.4s ease-out;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+.fade-scale {
+  animation: fadeScale 0.3s ease-out;
+}
+
+/* ==================== GLASSMORPHISM UTILITIES ==================== */
+
+.glass-light {
+  background: rgba(10, 13, 30, 0.9);
+  backdrop-filter: blur(32px) saturate(1.2);
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-ultra {
+  background: rgba(8, 12, 28, 0.95);
+  backdrop-filter: blur(40px) saturate(1.3);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  box-shadow: 0 30px 120px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.glass-dark {
+  background: rgba(2, 5, 11, 0.92);
+  backdrop-filter: blur(28px) saturate(1.15);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ==================== MAP-FIRST DESIGN ANIMATIONS ==================== */
+
+/* Animated Blue Location Orb - Apple Maps Style */
+@keyframes orbGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.6),
+                0 0 0 4px rgba(34, 211, 238, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(34, 211, 238, 0.3),
+                0 0 0 8px rgba(34, 211, 238, 0.1);
+  }
+}
+
+.location-orb {
+  animation: orbGlow 2.5s ease-out infinite;
+}
+
+/* Map Breathing Animation */
+@keyframes mapBreathe {
+  0%, 100% {
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    filter: brightness(1.05) saturate(1.1);
+  }
+}
+
+.map-breathe {
+  animation: mapBreathe 4s ease-in-out infinite;
+}
+
+/* Glowing Markers - Danger Zones */
+@keyframes dangerGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.8));
+    transform: scale(1.05);
+  }
+}
+
+.danger-glow {
+  animation: dangerGlow 1.5s ease-in-out infinite;
+}
+
+/* Safe Route Flowing Animation */
+@keyframes routeFlow {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
+.route-flow {
+  animation: routeFlow 3s linear infinite;
+}
+
+/* Contextual Popup - Smooth Entrance */
+@keyframes popupAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+.popup-appear {
+  animation: popupAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Floating Mini Controls - Auto Hide */
+@keyframes miniControlsHide {
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+  }
+}
+
+.mini-controls-hide {
+  animation: miniControlsHide 0.4s ease-in forwards;
+}
+
+/* Smart Map Labels - Fade With Zoom */
+@keyframes labelFade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.map-label-fade {
+  animation: labelFade 0.4s ease-out;
+}
+
+/* Holographic Wave Effect */
+@keyframes holographicWave {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotateZ(0deg);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1) rotateZ(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5) rotateZ(360deg);
+  }
+}
+
+.holographic-wave {
+  animation: holographicWave 2s ease-out infinite;
+}
+
+/* Ambient Glow for Active Layers */
+@keyframes ambientGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.2),
+                inset 0 0 20px rgba(34, 211, 238, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(34, 211, 238, 0.4),
+                inset 0 0 40px rgba(34, 211, 238, 0.1);
+  }
+}
+
+.ambient-glow {
+  animation: ambientGlow 3s ease-in-out infinite;
+}
+
+/* Dynamic Zoom Transition */
+@keyframes zoomTransition {
+  from {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.zoom-transition {
+  animation: zoomTransition 0.4s ease-out;
+}
+
+/* Soft Particle Effect */
+@keyframes particleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) translateX(15px);
+  }
+}
+
+.particle-float {
+  animation: particleFloat 2s ease-out infinite;
+}
+
+/* ==================== RESPONSIVE TWEAKS ==================== */
+
+@media (max-width: 768px) {
+  @keyframes pulseRings {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  /* Reduce animation intensity on mobile */
+  .map-breathe {
+    animation: mapBreathe 6s ease-in-out infinite;
+  }
+
+  .danger-glow {
+    animation: dangerGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes mapBreathe {
+    0%, 100% {
+      filter: brightness(1) saturate(1);
+    }
+    50% {
+      filter: brightness(1.02) saturate(1.05);
+    }
+  }
+}
+
