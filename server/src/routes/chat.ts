@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 
 export const chatRouter = Router();
 
-// Initialize OpenAI client with fallback
+// Initialize OpenAI client
 const openaiApiKey = process.env.OPENAI_API_KEY;
 let openaiClient: OpenAI | null = null;
 
@@ -14,82 +14,234 @@ if (openaiApiKey) {
   });
 }
 
+// In-memory conversation memory (in production, use Redis or database)
+const conversationMemory = new Map<string, Array<{ role: string; content: string }>>();
+
 const bodySchema = z.object({
   message: z.string().min(1).max(2000),
+  mode: z.enum(['companion', 'law', 'report']).optional().default('companion'),
   lat: z.number().optional(),
   lng: z.number().optional(),
-  language: z.string().optional(),
+  language: z.string().optional().default('en'),
+  userId: z.string().optional(),
 });
 
-// System prompt for RoadSoS AI assistant
-const SYSTEM_PROMPT = `You are RoadSoS AI, an intelligent emergency and road safety assistant for the BIMSTEC region (South and Southeast Asia: India, Bangladesh, Bhutan, Maldives, Nepal, Sri Lanka, Thailand). Your role is to provide:
+// System prompts for different modes
+const SYSTEM_PROMPTS: Record<string, string> = {
+  companion: `You are RoadSoS AI Neural Guide, an intelligent emergency and road safety companion for the BIMSTEC region (India, Bangladesh, Bhutan, Maldives, Nepal, Sri Lanka, Thailand).
 
-1. **Emergency Response**: Detect emergencies and provide immediate guidance
-2. **Road Safety**: Real-time traffic, accident, and road hazard information
-3. **Traffic Laws**: DriveLegal - provide traffic law information for the user's specific country/state
-4. **Citizen Reports**: RoadWatch - encourage and validate citizen-reported road issues
-5. **Location Services**: When given coordinates, provide localized advice
-
-**Your Expertise:**
-- Emergency protocols and first aid
-- Traffic rules for BIMSTEC countries
-- Road hazard identification
-- Emergency contact numbers by country
-- Safe driving practices
-- Vehicle compliance information
+Your role is to provide:
+1. **Emergency Response**: Instantly detect emergencies and provide life-saving guidance
+2. **Road Safety Insights**: Real-time traffic hazards, accident-prone zones, weather impacts
+3. **Safe Routing**: Suggest safest routes based on conditions and history
+4. **Safety Tips**: Proactive driving and accident prevention advice
+5. **Emotional Support**: Be empathetic during emergencies
 
 **Response Style:**
-- Direct, actionable advice in emergencies
+- Warm, professional, and instantly actionable
+- Direct emergency guidance when needed
 - Conversational and helpful for regular queries
-- Always ask for location (city/state/country) if needed for localized info
-- Provide verified emergency numbers and services
-- Keep responses concise but comprehensive
+- Always provide location-aware advice when coordinates available
+- Use emojis sparingly but effectively
+- Keep responses concise (100-150 words)
 
-**Emergency Keywords**: accident, crash, SOS, help, emergency, injured, unconscious, bleeding, pain, collision, fire, flood, stuck
+**Emergency Keywords Detection**: accident, crash, SOS, help, emergency, injured, unconscious, bleeding, pain, collision, fire, flood, stuck, trapped
 
-When emergency is detected, IMMEDIATELY provide:
-1. Nearest emergency contact
-2. First aid guidance if applicable
-3. Safe location awareness
-4. Nearby service options`;
+When emergency detected: Provide immediate action steps, nearest services, first aid basics, and reassurance.`,
 
-async function callOpenAI(message: string, locationInfo: string): Promise<string> {
+  law: `You are RoadSoS DriveLegal AI, specialized in traffic laws and vehicle compliance for BIMSTEC countries.
+
+Your expertise includes:
+1. **Traffic Laws**: Speed limits, traffic signals, lane rules by country/state
+2. **Vehicle Compliance**: License, insurance, pollution, safety requirements
+3. **Traffic Fines**: Calculate penalties based on violations and local regulations
+4. **Vehicle Documentation**: Requirements for registration, permits, insurance
+5. **Driving Rules**: State-specific or country-specific regulations
+6. **Legal Guidance**: Traffic dispute procedures, appeal processes
+
+**Key Features:**
+- State/country-specific answers for each BIMSTEC nation
+- Current fine amounts (updated annually)
+- Compliance deadlines and requirements
+- Document checklist and renewal reminders
+- Simple explanation of complex legal terms
+
+**Response Style:**
+- Authoritative and accurate
+- Clear explanation of laws
+- Practical compliance steps
+- Warnings about penalties
+- Keep under 200 words with structured format`,
+
+  report: `You are RoadSoS RoadWatch AI, facilitating citizen reporting and road condition monitoring.
+
+Your responsibilities:
+1. **Issue Reporting**: Accept reports of potholes, flooding, accidents, unsafe infrastructure
+2. **Report Validation**: Verify issue severity and location accuracy
+3. **Status Tracking**: Follow up on citizen-reported issues
+4. **Image Analysis**: Interpret uploaded road condition photos
+5. **Community Engagement**: Thank citizens, show impact of reports
+
+**Supported Issue Types:**
+- Potholes and road damage
+- Flooding and waterlogging
+- Accidents and near-misses
+- Traffic signal failures
+- Dangerous road conditions
+- Missing or damaged signage
+- Construction hazards
+
+**Response Style:**
+- Encouraging and appreciative
+- Action-oriented (what to do next)
+- Clear issue categorization
+- Location verification
+- Thank you for community service
+- Provide tracking reference number`,
+};
+
+async function callOpenAI(
+  message: string,
+  mode: string,
+  userId: string,
+  locationInfo: string
+): Promise<{ reply: string; isEmergency: boolean }> {
   if (!openaiClient) {
     throw new Error('OpenAI API key not configured');
   }
 
-  const userMessage = locationInfo ? `${message}${locationInfo}` : message;
+  // Get or initialize conversation history
+  const key = `${userId}-${mode}`;
+  if (!conversationMemory.has(key)) {
+    conversationMemory.set(key, []);
+  }
+  const history = conversationMemory.get(key)!;
+
+  // Build messages with history (keep last 10 messages for context)
+  const messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [
+    {
+      role: 'system',
+      content: SYSTEM_PROMPTS[mode],
+    },
+    ...history.slice(-10).map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    })),
+    {
+      role: 'user',
+      content: locationInfo ? `${message}\n${locationInfo}` : message,
+    },
+  ];
 
   const response = await openaiClient.chat.completions.create({
     model: 'gpt-3.5-turbo',
-    messages: [
-      {
-        role: 'system',
-        content: SYSTEM_PROMPT,
-      },
-      {
-        role: 'user',
-        content: userMessage,
-      },
-    ],
+    messages,
     temperature: 0.7,
     max_tokens: 500,
   });
 
-  const textContent = response.choices[0]?.message?.content;
-  if (!textContent) {
-    throw new Error('No response from OpenAI');
+  const reply = response.choices[0]?.message?.content || 'Unable to generate response';
+
+  // Check for emergency in response
+  const isEmergency = /\b(emergency|sos|ambulance|hospital|immediate|urgent|critical|life-threatening)\b/i.test(
+    reply
+  );
+
+  // Store conversation for memory
+  history.push(
+    { role: 'user', content: message },
+    { role: 'assistant', content: reply }
+  );
+
+  // Keep memory bounded (max 50 messages per mode per user)
+  if (history.length > 50) {
+    history.splice(0, history.length - 50);
   }
 
-  return textContent;
+  return { reply, isEmergency };
 }
 
-function getFallbackResponse(message: string, isEmergency: boolean, locationHint: string): string {
-  if (isEmergency) {
-    return `🚨 EMERGENCY DETECTED${locationHint}\n\nImmediate actions:\n1. Call 112 (ambulance) or 100 (police)\n2. Move to safety if possible\n3. I'm retrieving nearby hospitals and emergency services...\n\nYour message: "${message}"\n\nEmergency dispatch system is being activated.`;
-  }
+function getFallbackResponse(
+  message: string,
+  mode: string,
+  isEmergency: boolean,
+  locationHint: string
+): { reply: string; isEmergency: boolean } {
+  const responses: Record<string, () => string> = {
+    companion: () => {
+      if (isEmergency) {
+        return `🚨 EMERGENCY DETECTED${locationHint}
 
-  return `Road Safety Assistant here. You asked: "${message}"\n\nTo provide better assistance:\n• Share your location (city/state) or GPS coordinates\n• Tell me the specific road safety concern\n• I can help with: traffic laws (DriveLegal), road hazards (RoadWatch), emergency services, safe driving tips\n\nWhat can I help you with?`;
+IMMEDIATE ACTIONS:
+1. **Call 112 (Ambulance)** or 100 (Police)
+2. Move to a safe location if possible
+3. Provide your exact location to dispatcher
+4. I'm routing nearby hospitals and emergency services
+
+Your concern: "${message}"
+
+RoadSoS emergency protocols activated. Stay calm and focus on safety.`;
+      }
+      return `Welcome to RoadSoS AI. I'm here to help with:
+• Emergency routing and first aid
+• Road safety and route optimization
+• Traffic updates and hazard warnings
+• Safe driving tips and accident prevention
+
+Your question: "${message}"
+
+For better assistance, please share your location or be specific about your concern. How can I help ensure your safety today?`;
+    },
+
+    law: () => {
+      return `RoadSoS DriveLegal Assistant here.
+
+Your question: "${message}"
+
+To provide accurate traffic law information, I need:
+• Your country/state in BIMSTEC region
+• Specific traffic or vehicle concern
+• Whether it's about fines, compliance, or regulations
+
+I can help with:
+✓ Traffic law violations and penalties
+✓ Vehicle compliance requirements
+✓ License and insurance information
+✓ Fine calculations for your region
+✓ Traffic dispute procedures
+
+What traffic law information do you need?`;
+    },
+
+    report: () => {
+      return `RoadSoS RoadWatch - Community Safety Program
+
+Your report: "${message}"
+
+To process your road condition report:
+1. **Issue Type**: Specify the problem (pothole, flooding, accident, etc.)
+2. **Location**: Provide address, road name, or GPS coordinates
+3. **Severity**: Is this urgent or routine?
+4. **Evidence**: Photo or video helps (if applicable)
+
+Your report helps improve road safety for everyone! 
+
+Report Reference: RW-${Date.now()}
+
+Thank you for contributing to safer roads in our region.`;
+    },
+  };
+
+  return {
+    reply: (responses[mode] || responses.companion)(),
+    isEmergency,
+  };
+}
+
+function isEmergencyMessage(message: string): boolean {
+  return /\b(accident|sos|emergency|help|hurt|injur|crash|collision|fire|flood|stuck|bleed|unconscious|pain|trapped|dying|critical|urgent)\b/i.test(
+    message
+  );
 }
 
 chatRouter.post('/', async (req, res) => {
@@ -111,39 +263,39 @@ chatRouter.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Invalid request', details: parsed.error.flatten() });
   }
 
-  const { message, lat, lng, language } = parsed.data;
+  const { message, mode, lat, lng, language, userId = 'anonymous' } = parsed.data;
 
   const locationHint =
     typeof lat === 'number' && typeof lng === 'number'
-      ? ` (Location: ${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      ? `\n[Location Context: Latitude ${lat.toFixed(4)}, Longitude ${lng.toFixed(4)}]`
       : '';
 
-  const isEmergency = /\b(accident|sos|emergency|help|hurt|injur|crash|collision|fire|flood|stuck|bleed|unconscious|pain)\b/i.test(
-    message
-  );
+  const isEmergency = isEmergencyMessage(message);
 
-  let reply: string;
+  let response: { reply: string; isEmergency: boolean };
 
   try {
     // Try to use OpenAI if available
     if (openaiClient) {
-      reply = await callOpenAI(message, locationHint);
+      response = await callOpenAI(message, mode, userId, locationHint);
     } else {
       // Fallback to deterministic responses
-      reply = getFallbackResponse(message, isEmergency, locationHint);
+      response = getFallbackResponse(message, mode, isEmergency, locationHint);
     }
   } catch (error) {
     // Graceful fallback if API fails
     console.error('OpenAI API error:', error);
-    reply = getFallbackResponse(message, isEmergency, locationHint);
+    response = getFallbackResponse(message, mode, isEmergency, locationHint);
   }
 
   return res.json({
-    reply,
+    reply: response.reply,
     meta: {
-      language: language ?? 'en',
-      isEmergency,
+      language,
+      isEmergency: response.isEmergency || isEmergency,
+      mode,
       locationProvided: !!(lat && lng),
+      timestamp: new Date().toISOString(),
     },
   });
 });
