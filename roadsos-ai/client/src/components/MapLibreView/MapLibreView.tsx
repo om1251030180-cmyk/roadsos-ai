@@ -90,28 +90,12 @@ const createCircleGeoJSON = (lon: number, lat: number, radiusKm: number) => {
 const createDarkAppleTheme = () => ({
   version: 8,
   glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-    },
-  },
   layers: [
     {
       id: 'background',
       type: 'background',
       paint: {
-        'background-color': '#0a0a0a',
-      },
-    },
-    {
-      id: 'osm',
-      type: 'raster',
-      source: 'osm',
-      paint: {
-        'raster-opacity': 0.9,
-        'raster-fade-duration': 250,
+        'background-color': '#061018',
       },
     },
   ],
@@ -444,6 +428,8 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
       style: createDarkAppleTheme() as any,
       center: [lng, lat],
       zoom,
+      minZoom: 3,
+      maxZoom: 18,
       pitch: 45,
       bearing: 0,
     });
@@ -579,7 +565,7 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
 
     map.current.flyTo({
       center: [userLocation.lng, userLocation.lat],
-      zoom: 15,
+      zoom: Math.min(15, map.current.getMaxZoom() ?? 18),
       duration: 1000,
       essential: true,
     });
@@ -591,6 +577,18 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
       className="relative w-full h-full overflow-hidden pointer-events-auto"
       style={{ background: '#0a0a0a' }}
     >
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(14,165,233,0.12), transparent 26%), radial-gradient(circle at 80% 30%, rgba(34,197,94,0.08), transparent 22%), linear-gradient(rgba(148,163,184,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.08) 1px, transparent 1px)',
+          backgroundSize: '100% 100%, 100% 100%, 64px 64px, 64px 64px',
+          backgroundPosition: 'center',
+          pointerEvents: 'none',
+          opacity: 0.8,
+        }}
+      />
       <style>{`@keyframes roadsos-pulse { 0% { transform: scale(0.9); opacity: 0.45; } 70% { transform: scale(1.18); opacity: 0.08; } 100% { transform: scale(1.18); opacity: 0; } }`}</style>
     </div>
   );
