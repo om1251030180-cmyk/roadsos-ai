@@ -1,0 +1,234 @@
+{
+  "hospitals": [
+    {
+      "id": 1,
+      "type": "hospital",
+      "name": "Ruby Hall Trauma Center",
+      "lat": 18.5308,
+      "lng": 73.8777,
+      "beds_available": 24,
+      "emergency": true,
+      "rating": 4.8,
+      "eta_minutes": 6,
+      "phone": "+91-9876543210",
+      "road_quality": "Good",
+      "status": "Open 24x7"
+    },
+    {
+      "id": 2,
+      "type": "hospital",
+      "name": "CityCare Emergency Hospital",
+      "lat": 18.5152,
+      "lng": 73.8561,
+      "beds_available": 12,
+      "emergency": true,
+      "rating": 4.5,
+      "eta_minutes": 8,
+      "phone": "+91-9876500000",
+      "road_quality": "Moderate",
+      "status": "Busy"
+    }
+  ],
+  "ambulances": [
+    {
+      "id": 101,
+      "type": "ambulance",
+      "name": "Emergency Ambulance A1",
+      "lat": 18.5209,
+      "lng": 73.8675,
+      "available": true,
+      "eta_minutes": 4,
+      "speed": 62,
+      "driver": "Rahul Patil",
+      "contact": "+91-9123456789"
+    },
+    {
+      "id": 102,
+      "type": "ambulance",
+      "name": "Emergency Ambulance B4",
+      "lat": 18.5272,
+      "lng": 73.8722,
+      "available": false,
+      "eta_minutes": 11,
+      "speed": 0,
+      "driver": "Vikas Sharma",
+      "contact": "+91-9000000000"
+    }
+  ],
+  "police": [
+    {
+      "id": 201,
+      "type": "police",
+      "name": "Shivajinagar Police Station",
+      "lat": 18.5314,
+      "lng": 73.8472,
+      "status": "Active",
+      "officers_available": 18,
+      "phone": "100"
+    },
+    {
+      "id": 202,
+      "type": "police",
+      "name": "Kothrud Police Station",
+      "lat": 18.5074,
+      "lng": 73.8077,
+      "status": "Active",
+      "officers_available": 10,
+      "phone": "100"
+    }
+  ],
+  "danger_zones": [
+    {
+      "id": 301,
+      "type": "danger_zone",
+      "name": "High Accident Zone - Swargate",
+      "lat": 18.5018,
+      "lng": 73.8636,
+      "severity": "High",
+      "accidents_last_year": 42,
+      "peak_time": "7 PM - 10 PM",
+      "risk_score": 92,
+      "reason": "Heavy traffic and sharp turns"
+    },
+    {
+      "id": 302,
+      "type": "danger_zone",
+      "name": "Flood Accident Risk Area",
+      "lat": 18.5481,
+      "lng": 73.9145,
+      "severity": "Medium",
+      "accidents_last_year": 19,
+      "peak_time": "Rainy Season",
+      "risk_score": 75,
+      "reason": "Waterlogging and poor visibility"
+    }
+  ],
+  "road_quality": [
+    {
+      "id": 401,
+      "type": "road_quality",
+      "road_name": "JM Road",
+      "quality_score": 88,
+      "status": "Good",
+      "lat": 18.5195,
+      "lng": 73.8414,
+      "maintenance_due": "2026-08-20",
+      "potholes": 1
+    },
+    {
+      "id": 402,
+      "type": "road_quality",
+      "road_name": "Hadapsar Main Road",
+      "quality_score": 42,
+      "status": "Poor",
+      "lat": 18.4966,
+      "lng": 73.9311,
+      "maintenance_due": "Urgent",
+      "potholes": 14
+    }
+  ],
+  "flood_zones": [
+    {
+      "id": 501,
+      "type": "flood_zone",
+      "name": "Flood Risk Area",
+      "lat": 18.5401,
+      "lng": 73.9321,
+      "severity": "High",
+      "water_level": "2.5 ft",
+      "visibility": "Low",
+      "safe": false
+    }
+  ],
+  "traffic": [
+    {
+      "id": 601,
+      "type": "traffic",
+      "road": "FC Road",
+      "lat": 18.5203,
+      "lng": 73.8410,
+      "traffic_level": "Heavy",
+      "average_speed": 14,
+      "congestion_score": 89
+    },
+    {
+      "id": 602,
+      "type": "traffic",
+      "road": "Baner Road",
+      "lat": 18.559,
+      "lng": 73.7868,
+      "traffic_level": "Moderate",
+      "average_speed": 32,
+      "congestion_score": 51
+    }
+  ],
+  "construction": [
+    {
+      "id": 701,
+      "type": "construction",
+      "name": "Metro Construction Zone",
+      "lat": 18.5285,
+      "lng": 73.8741,
+      "severity": "Moderate",
+      "lanes_blocked": 2,
+      "expected_completion": "2026-11-15"
+    }
+  ],
+  "cctv": [
+    {
+      "id": 801,
+      "type": "cctv",
+      "name": "Smart Traffic Camera 01",
+      "lat": 18.5229,
+      "lng": 73.8562,
+      "status": "Online",
+      "ai_detection": true,
+      "violations_today": 28
+    }
+  ],
+  "emergency_contacts": [
+    {
+      "id": 901,
+      "service": "National Emergency",
+      "number": "112"
+    },
+    {
+      "id": 902,
+      "service": "Ambulance",
+      "number": "108"
+    },
+    {
+      "id": 903,
+      "service": "Police",
+      "number": "100"
+    },
+    {
+      "id": 904,
+      "service": "Fire Brigade",
+      "number": "101"
+    }
+  ],
+  "safe_routes": [
+    {
+      "id": 1001,
+      "type": "safe_route",
+      "from": "Shivajinagar",
+      "to": "Kharadi",
+      "safety_score": 91,
+      "traffic": "Moderate",
+      "flood_safe": true,
+      "accident_probability": 9
+    }
+  ],
+  "ai_alerts": [
+    {
+      "id": 1101,
+      "type": "ai_alert",
+      "title": "Heavy Rain Accident Risk",
+      "lat": 18.5421,
+      "lng": 73.9182,
+      "risk_score": 86,
+      "message": "Accident probability increased due to rainfall and visibility reduction."
+    }
+  ]
+}
