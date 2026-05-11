@@ -14,6 +14,11 @@ interface SmartCityLayer {
   items: Array<{ name: string; count: number; icon: string }>;
 }
 
+interface SmartCityOverlaysProps {
+  dockMode?: boolean;
+  className?: string;
+}
+
 const LAYERS: SmartCityLayer[] = [
   {
     id: "emergency",
@@ -69,7 +74,7 @@ const LAYERS: SmartCityLayer[] = [
   },
 ];
 
-export default function SmartCityOverlays() {
+export default function SmartCityOverlays({ dockMode = false, className = "" }: SmartCityOverlaysProps) {
   const [activeLayer, setActiveLayer] = useState<LayerType | null>(null);
   const [visibleLayers, setVisibleLayers] = useState<Set<LayerType>>(new Set(["emergency"]));
 
@@ -86,17 +91,24 @@ export default function SmartCityOverlays() {
   const selectedLayer = LAYERS.find((l) => l.id === activeLayer);
 
   return (
-    <div className="fixed top-28 right-6 z-40 pointer-events-auto">
+    <div className={`${dockMode ? "relative w-full" : "fixed top-28 right-6"} z-40 pointer-events-auto ${className}`}>
       {/* Layer Toggle Panel */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-ultra rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+        className="glass-ultra rounded-[28px] overflow-hidden shadow-2xl border border-white/10"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-cyan-600/30 to-purple-600/30 border-b border-white/10 px-6 py-4">
-          <h3 className="text-lg font-black text-white">Smart City Layers</h3>
-          <p className="text-xs text-white/60 mt-1">Real-time intelligence network</p>
+        <div className="bg-gradient-to-r from-cyan-600/30 to-purple-600/30 border-b border-white/10 px-5 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-black text-white">Smart City Layers</h3>
+              <p className="text-xs text-white/60 mt-1">Real-time intelligence network</p>
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100/80">
+              Contextual
+            </div>
+          </div>
         </div>
 
         {/* Layer Buttons */}
@@ -108,7 +120,7 @@ export default function SmartCityOverlays() {
                   setActiveLayer(activeLayer === layer.id ? null : layer.id);
                   toggleLayerVisibility(layer.id);
                 }}
-                className={`w-full px-4 py-3 rounded-xl transition-all border text-left ${
+                className={`w-full px-4 py-3 rounded-2xl transition-all border text-left ${
                   visibleLayers.has(layer.id)
                     ? `bg-gradient-to-r ${layer.color} bg-opacity-20 border-white/30`
                     : "bg-white/5 border-white/10 hover:bg-white/10"
@@ -138,7 +150,7 @@ export default function SmartCityOverlays() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.9 }}
             transition={{ duration: 0.3 }}
-            className="absolute top-0 right-full -mr-2 w-72 glass-ultra rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-16"
+            className={`${dockMode ? "relative mt-3" : "absolute top-0 right-full -mr-2 mt-16"} w-72 glass-ultra rounded-[28px] overflow-hidden shadow-2xl border border-white/10`}
           >
             {/* Header */}
             <div className={`bg-gradient-to-r ${selectedLayer.color} bg-opacity-20 border-b border-white/10 px-6 py-5`}>
@@ -157,7 +169,7 @@ export default function SmartCityOverlays() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="bg-white/10 hover:bg-white/15 border border-white/10 rounded-lg p-3 transition cursor-pointer group"
+                  className="bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl p-3 transition cursor-pointer group"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">

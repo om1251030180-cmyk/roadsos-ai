@@ -25,7 +25,19 @@ function uid() {
  * - Minimal space footprint
  * - Animated reactions
  */
-export const CompactAssistant: React.FC = () => {
+interface CompactAssistantProps {
+  dockMode?: boolean;
+  className?: string;
+  triggerClassName?: string;
+  panelClassName?: string;
+}
+
+export const CompactAssistant: React.FC<CompactAssistantProps> = ({
+  dockMode = false,
+  className = "",
+  triggerClassName = "",
+  panelClassName = "",
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -121,20 +133,20 @@ export const CompactAssistant: React.FC = () => {
   };
 
   return (
-    <div ref={dragConstraints} className="fixed inset-0 z-30 pointer-events-none">
+    <div ref={dragConstraints} className={`${dockMode ? "relative" : "fixed inset-0 z-30"} pointer-events-none ${className}`}>
       {/* Compact Orb - Always Visible */}
       <motion.div
-        drag
+        drag={!dockMode}
         dragConstraints={dragConstraints}
         dragElastic={0.2}
         dragTransition={{ power: 0.3, restDelta: 0.001 }}
-        initial={{ x: -80, y: 80, opacity: 0 }}
+        initial={{ x: dockMode ? 0 : -80, y: dockMode ? 0 : 80, opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="fixed bottom-24 right-8 z-30 pointer-events-auto"
+        className={`${dockMode ? "relative" : "fixed bottom-24 right-8 z-30"} pointer-events-auto ${triggerClassName}`}
       >
         <motion.button
           onClick={() => setIsExpanded((v) => !v)}
-          className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-2xl cursor-grab active:cursor-grabbing transition ${
+          className={`flex h-14 w-14 items-center justify-center rounded-2xl text-3xl shadow-2xl cursor-grab active:cursor-grabbing transition ${
             emergencyMode
               ? "bg-gradient-to-br from-red-600 to-orange-600 border-2 border-red-300 animate-pulse"
               : "bg-gradient-to-br from-cyan-500 to-blue-500 border-2 border-cyan-300"
@@ -154,9 +166,9 @@ export const CompactAssistant: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 40 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="fixed bottom-40 right-8 z-40 pointer-events-auto"
+            className={`${dockMode ? "absolute bottom-[calc(100%+1rem)] left-1/2 -translate-x-1/2" : "fixed bottom-40 right-8 z-40"} pointer-events-auto ${panelClassName}`}
           >
-            <div className="w-80 glass-panel-bright rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="w-[min(24rem,calc(100vw-1.5rem))] glass-panel-bright rounded-[28px] overflow-hidden shadow-2xl border border-white/10">
               {/* Header */}
               <div
                 className={`p-4 bg-gradient-to-r ${
@@ -196,7 +208,7 @@ export const CompactAssistant: React.FC = () => {
                     }`}
                   >
                     <div
-                      className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+                      className={`max-w-xs px-3 py-2 rounded-2xl text-sm ${
                         msg.role === "user"
                           ? "bg-cyan-500/40 text-cyan-100 border border-cyan-400/30"
                           : `${
@@ -216,7 +228,7 @@ export const CompactAssistant: React.FC = () => {
                     animate={{ opacity: 1 }}
                     className="flex justify-start"
                   >
-                    <div className="px-3 py-2 rounded-lg text-sm bg-white/10 border border-white/20">
+                    <div className="px-3 py-2 rounded-2xl text-sm bg-white/10 border border-white/20">
                       <motion.span
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
@@ -239,12 +251,12 @@ export const CompactAssistant: React.FC = () => {
                       if (e.key === "Enter" && !loading) handleSendMessage();
                     }}
                     placeholder="Ask something..."
-                    className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 text-sm"
+                    className="flex-1 px-3 py-2 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 text-sm"
                   />
                   <motion.button
                     onClick={handleSendMessage}
                     disabled={loading || !text.trim()}
-                    className="px-3 py-2 rounded-lg bg-cyan-500/40 hover:bg-cyan-500/60 disabled:opacity-50 transition text-white font-bold text-sm"
+                    className="px-3 py-2 rounded-2xl bg-cyan-500/40 hover:bg-cyan-500/60 disabled:opacity-50 transition text-white font-bold text-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -256,7 +268,7 @@ export const CompactAssistant: React.FC = () => {
                 <motion.button
                   onClick={startListening}
                   disabled={isListening}
-                  className={`w-full py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition ${
+                    className={`w-full py-2 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition ${
                     isListening
                       ? "bg-red-500/40 text-red-100 border border-red-400/30"
                       : "bg-white/10 hover:bg-white/20 text-white/70 border border-white/20"

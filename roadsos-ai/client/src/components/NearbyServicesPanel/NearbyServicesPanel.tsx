@@ -14,6 +14,7 @@ interface NearbyServicesPanelProps {
   services: NearbyService[];
   loading?: boolean;
   userLocation?: { lat: number; lng: number };
+  className?: string;
 }
 
 const serviceIcons = {
@@ -36,6 +37,7 @@ export default function NearbyServicesPanel({
   services,
   loading = false,
   userLocation,
+  className = "",
 }: NearbyServicesPanelProps) {
   const [selectedService, setSelectedService] = useState<NearbyService | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>("hospital");
@@ -60,13 +62,13 @@ export default function NearbyServicesPanel({
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="absolute left-4 top-32 max-w-xs pointer-events-auto z-40 max-h-[calc(100vh-200px)] overflow-y-auto"
+        className={`absolute left-4 top-24 z-40 max-h-[calc(100vh-220px)] w-[min(19rem,calc(100vw-2rem))] overflow-y-auto pointer-events-auto ${className}`}
       >
         <div className="space-y-2">
           {Object.entries(groupedServices).map(([category, items]) => (
             <motion.div
               key={category}
-              className="glass-panel-bright rounded-xl overflow-hidden border border-white/10"
+              className="glass-panel-bright rounded-[24px] overflow-hidden border border-white/10"
               whileHover={{ scale: 1.02 }}
             >
               {/* Category Header */}
@@ -81,14 +83,14 @@ export default function NearbyServicesPanel({
                 } hover:opacity-90 transition`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">
+                    <span className="text-lg">
                     {serviceIcons[category as keyof typeof serviceIcons]}
                   </span>
                   <span className="font-bold text-sm text-white">
                     {categoryLabels[category]} ({items.length})
                   </span>
                 </div>
-                <span className="text-xl">
+                <span className="text-lg">
                   {expandedCategory === category ? "▼" : "▶"}
                 </span>
               </button>
@@ -108,7 +110,7 @@ export default function NearbyServicesPanel({
                           key={idx}
                           onClick={() => setSelectedService(service)}
                           whileHover={{ x: 5 }}
-                          className="w-full text-left p-2 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-white/20"
+                          className="w-full text-left p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-white/20"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
@@ -138,14 +140,14 @@ export default function NearbyServicesPanel({
           ))}
 
           {loading && (
-            <div className="glass-panel-bright rounded-xl p-4 flex items-center justify-center">
+            <div className="glass-panel-bright rounded-[24px] p-4 flex items-center justify-center">
               <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500"></div>
               <span className="ml-2 text-xs text-white/70">Loading services...</span>
             </div>
           )}
 
           {!loading && services.length === 0 && (
-            <div className="glass-panel-bright rounded-xl p-4 text-center">
+            <div className="glass-panel-bright rounded-[24px] p-4 text-center">
               <p className="text-xs text-white/60">No services found nearby</p>
             </div>
           )}
@@ -159,7 +161,7 @@ export default function NearbyServicesPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto bg-black/55 backdrop-blur-sm"
             onClick={() => setSelectedService(null)}
           >
             <motion.div
@@ -167,7 +169,7 @@ export default function NearbyServicesPanel({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className={`glass-panel-bright rounded-2xl p-6 max-w-sm border border-white/20 bg-gradient-to-br ${
+              className={`glass-panel-bright rounded-[28px] p-6 max-w-sm border border-white/20 bg-gradient-to-br ${
                 serviceColors[selectedService.type]
               } shadow-2xl`}
             >

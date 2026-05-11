@@ -120,6 +120,9 @@ interface MapLayerManagerProps {
   activeLayers?: MapLayer[];
   onLayerToggle?: (layer: MapLayer) => void;
   compact?: boolean;
+  dockMode?: boolean;
+  className?: string;
+  panelClassName?: string;
 }
 
 /**
@@ -135,6 +138,9 @@ export const MapLayerManager: React.FC<MapLayerManagerProps> = ({
   activeLayers = [],
   onLayerToggle = () => {},
   compact = true,
+  dockMode = false,
+  className = "",
+  panelClassName = "",
 }) => {
   const [isExpanded, setIsExpanded] = useState(!compact);
   const [hoveredLayer, setHoveredLayer] = useState<MapLayer | null>(null);
@@ -150,7 +156,7 @@ export const MapLayerManager: React.FC<MapLayerManagerProps> = ({
 
   return (
     <motion.div
-      className="fixed bottom-8 right-8 z-50 pointer-events-auto"
+      className={`${dockMode ? "relative w-full" : "fixed bottom-8 right-8 z-50"} pointer-events-auto ${className}`}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(compact ? false : true)}
     >
@@ -158,7 +164,7 @@ export const MapLayerManager: React.FC<MapLayerManagerProps> = ({
       {compact && (
         <motion.button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500/40 to-blue-500/40 border border-cyan-300/50 backdrop-blur-xl hover:from-cyan-500/60 hover:to-blue-500/60 transition flex items-center justify-center text-lg font-black shadow-lg hover:shadow-xl"
+          className={`${dockMode ? "h-14 w-14 rounded-2xl" : "w-14 h-14 rounded-full"} bg-gradient-to-br from-cyan-500/40 to-blue-500/40 border border-cyan-300/50 backdrop-blur-xl hover:from-cyan-500/60 hover:to-blue-500/60 transition flex items-center justify-center text-lg font-black shadow-lg hover:shadow-xl`}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -174,12 +180,12 @@ export const MapLayerManager: React.FC<MapLayerManagerProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            className="absolute bottom-20 right-0 w-72 glass-panel-bright rounded-2xl p-4 shadow-xl"
+            className={`${dockMode ? "relative mt-3 w-full" : "absolute bottom-20 right-0 w-72"} glass-panel-bright rounded-[28px] p-4 shadow-xl ${panelClassName}`}
           >
             {/* Header */}
             <div className="mb-4 pb-3 border-b border-white/10">
               <p className="text-xs uppercase tracking-[0.2em] text-cyan-300 font-black">
-                Map Layers
+                Spatial Layers
               </p>
               <p className="text-sm text-white/70 mt-1">
                 {activeLayers.length} layer{activeLayers.length !== 1 ? "s" : ""} active
@@ -233,8 +239,8 @@ export const MapLayerManager: React.FC<MapLayerManagerProps> = ({
 
             {/* Footer */}
             <div className="mt-4 pt-3 border-t border-white/10">
-              <p className="text-xs text-white/50 text-center">
-                Click to toggle layers on the map
+                <p className="text-xs text-white/50 text-center">
+                Docked layer rail for low-clutter map control
               </p>
             </div>
           </motion.div>

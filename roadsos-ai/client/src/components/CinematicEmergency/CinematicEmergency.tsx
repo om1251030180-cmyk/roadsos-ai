@@ -27,7 +27,19 @@ async function getCurrentLocation(): Promise<{ lat: number; lng: number }> {
   });
 }
 
-export default function CinematicEmergencySystem() {
+interface CinematicEmergencyProps {
+  compact?: boolean;
+  dockMode?: boolean;
+  triggerClassName?: string;
+  panelClassName?: string;
+}
+
+export default function CinematicEmergencySystem({
+  compact = false,
+  dockMode = false,
+  triggerClassName = "",
+  panelClassName = "",
+}: CinematicEmergencyProps) {
   const [isActive, setIsActive] = useState(false);
   const [level, setLevel] = useState<EmergencyLevel>("normal");
   const [loading, setLoading] = useState(false);
@@ -98,7 +110,7 @@ export default function CinematicEmergencySystem() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
         onClick={activateEmergency}
-        className={`fixed bottom-6 left-6 z-[70] w-24 h-24 rounded-full font-black text-white border-2 pointer-events-auto transition-all duration-300 ${
+        className={`${dockMode ? "relative" : "fixed bottom-6 left-6 z-[70]"} ${compact ? "w-14 h-14" : "w-24 h-24"} rounded-2xl font-black text-white border-2 pointer-events-auto transition-all duration-300 ${triggerClassName} ${
           isActive
             ? "bg-gradient-to-br from-red-600 to-red-700 border-red-400 emergency-pulse shadow-red-500/50"
             : "bg-gradient-to-br from-rose-600 to-red-700 border-red-400/50 hover:shadow-lg shadow-lg"
@@ -135,9 +147,9 @@ export default function CinematicEmergencySystem() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.9 }}
               transition={{ duration: 0.5 }}
-              className="fixed bottom-32 left-6 z-[70] w-96 pointer-events-auto"
+              className={`fixed bottom-32 left-6 z-[70] ${compact ? "w-[min(24rem,calc(100vw-1.5rem))]" : "w-96"} pointer-events-auto ${panelClassName}`}
             >
-              <div className="rounded-3xl glass-ultra border border-red-400/30 overflow-hidden shadow-2xl">
+                <div className="rounded-[28px] glass-ultra border border-red-400/30 overflow-hidden shadow-2xl">
                 {/* Critical Alert Header */}
                 <div className="bg-gradient-to-r from-red-600/40 to-orange-600/40 border-b border-red-400/30 px-6 py-5">
                   <motion.div
@@ -165,7 +177,7 @@ export default function CinematicEmergencySystem() {
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-gradient-to-br from-emerald-600/30 to-cyan-600/30 border border-emerald-400/40 rounded-2xl p-4"
+                        className="bg-gradient-to-br from-emerald-600/30 to-cyan-600/30 border border-emerald-400/40 rounded-[24px] p-4"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -196,7 +208,7 @@ export default function CinematicEmergencySystem() {
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-400/30 rounded-2xl p-4"
+                        className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-400/30 rounded-[24px] p-4"
                       >
                         <p className="text-xs text-blue-200/70 uppercase font-bold tracking-widest">Nearest Hospital</p>
                         <p className="text-lg font-black text-white mt-1">{dashboard.nearestHospital.name}</p>
@@ -217,7 +229,7 @@ export default function CinematicEmergencySystem() {
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="bg-gradient-to-br from-amber-600/20 to-orange-600/20 border border-amber-400/30 rounded-2xl p-4"
+                        className="bg-gradient-to-br from-amber-600/20 to-orange-600/20 border border-amber-400/30 rounded-[24px] p-4"
                       >
                         <p className="text-xs text-amber-200/70 uppercase font-bold tracking-widest">⚡ Immediate Action</p>
                         <p className="text-sm text-white/90 mt-2">{dashboard.firstAid}</p>

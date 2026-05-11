@@ -114,9 +114,9 @@ export const ContextualPopup: React.FC<ContextualPopupProps> = ({
             }}
             className="pointer-events-auto"
           >
-            <div className="relative w-72">
+            <div className="relative w-[min(19rem,calc(100vw-1rem))]">
               {/* Popup Card */}
-              <div className="glass-panel-bright rounded-2xl overflow-hidden shadow-2xl">
+              <div className="glass-panel-bright rounded-[26px] overflow-hidden shadow-2xl">
                 {/* Header with Color Band */}
                 <div
                   className={`bg-gradient-to-r ${getTypeGradient(
@@ -155,7 +155,7 @@ export const ContextualPopup: React.FC<ContextualPopupProps> = ({
                     {data.primaryInfo.map((info, idx) => (
                       <motion.div
                         key={idx}
-                        className="bg-white/5 hover:bg-white/10 rounded-lg p-2 transition"
+                        className="bg-white/5 hover:bg-white/10 rounded-2xl p-2 transition"
                         whileHover={{ scale: 1.05 }}
                       >
                         <p className="text-xs text-white/60 font-bold uppercase tracking-[0.1em]">
@@ -197,7 +197,7 @@ export const ContextualPopup: React.FC<ContextualPopupProps> = ({
                           action.onClick();
                           onActionClick?.(idx);
                         }}
-                        className={`w-full px-4 py-2 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 ${
+                        className={`w-full px-4 py-2 rounded-2xl font-bold text-sm transition flex items-center justify-center gap-2 ${
                           action.color ||
                           "bg-gradient-to-r from-cyan-500/40 to-blue-500/40 hover:from-cyan-500/60 hover:to-blue-500/60 text-cyan-100 border border-cyan-400/30"
                         }`}

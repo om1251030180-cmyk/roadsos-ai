@@ -64,6 +64,30 @@ body {
   overflow-x: hidden;
 }
 
+.spatial-shell {
+  padding-top: calc(env(safe-area-inset-top) + 0.75rem);
+  padding-right: calc(env(safe-area-inset-right) + 0.75rem);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  padding-left: calc(env(safe-area-inset-left) + 0.75rem);
+}
+
+.map-hero-frame {
+  isolation: isolate;
+}
+
+.dock-surface {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(180deg, rgba(8, 12, 28, 0.88), rgba(3, 7, 18, 0.72));
+  backdrop-filter: blur(28px) saturate(1.2);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.rail-chip {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -636,6 +660,13 @@ body {
     50% {
       filter: brightness(1.02) saturate(1.05);
     }
+  }
+
+  .spatial-shell {
+    padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+    padding-right: calc(env(safe-area-inset-right) + 0.5rem);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+    padding-left: calc(env(safe-area-inset-left) + 0.5rem);
   }
 }
 
