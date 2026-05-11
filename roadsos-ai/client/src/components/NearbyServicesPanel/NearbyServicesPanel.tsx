@@ -15,6 +15,7 @@ interface NearbyServicesPanelProps {
   loading?: boolean;
   userLocation?: { lat: number; lng: number };
   className?: string;
+  compact?: boolean;
 }
 
 const serviceIcons = {
@@ -38,9 +39,11 @@ export default function NearbyServicesPanel({
   loading = false,
   userLocation,
   className = "",
+  compact = true,
 }: NearbyServicesPanelProps) {
   const [selectedService, setSelectedService] = useState<NearbyService | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>("hospital");
+  const [isExpanded, setIsExpanded] = useState(!compact);
 
   const groupedServices = services.reduce((acc, service) => {
     if (!acc[service.type]) acc[service.type] = [];
@@ -62,99 +65,120 @@ export default function NearbyServicesPanel({
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className={`absolute left-4 top-24 z-40 max-h-[calc(100vh-220px)] w-[min(19rem,calc(100vw-2rem))] overflow-y-auto pointer-events-auto ${className}`}
+        className={`absolute left-4 top-24 z-40 pointer-events-auto ${className}`}
       >
-        <div className="space-y-2">
-          {Object.entries(groupedServices).map(([category, items]) => (
+        <button
+          onClick={() => setIsExpanded((value) => !value)}
+          className="rail-chip flex items-center gap-3 rounded-full px-4 py-3 text-left text-white shadow-lg transition hover:bg-white/10"
+        >
+          <span className="text-xl">🗺️</span>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-200/70">Nearby</p>
+            <p className="text-sm font-semibold text-white/80">{services.length} live places</p>
+          </div>
+          <span className="ml-1 text-xs text-white/50">{isExpanded ? "−" : "+"}</span>
+        </button>
+
+        <AnimatePresence>
+          {isExpanded && (
             <motion.div
-              key={category}
-              className="glass-panel-bright rounded-[24px] overflow-hidden border border-white/10"
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="mt-3 max-h-[calc(100vh-220px)] w-[min(19rem,calc(100vw-2rem))] overflow-y-auto"
             >
-              {/* Category Header */}
-              <button
-                onClick={() =>
-                  setExpandedCategory(
-                    expandedCategory === category ? null : category
-                  )
-                }
-                className={`w-full px-4 py-3 flex items-center justify-between bg-gradient-to-r ${
-                  serviceColors[category as keyof typeof serviceColors]
-                } hover:opacity-90 transition`}
-              >
-                <div className="flex items-center gap-2">
-                    <span className="text-lg">
-                    {serviceIcons[category as keyof typeof serviceIcons]}
-                  </span>
-                  <span className="font-bold text-sm text-white">
-                    {categoryLabels[category]} ({items.length})
-                  </span>
-                </div>
-                <span className="text-lg">
-                  {expandedCategory === category ? "▼" : "▶"}
-                </span>
-              </button>
-
-              {/* Services List */}
-              <AnimatePresence>
-                {expandedCategory === category && (
+              <div className="space-y-2">
+                {Object.entries(groupedServices).map(([category, items]) => (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="bg-black/50 border-t border-white/10"
+                    key={category}
+                    className="glass-panel-bright rounded-[24px] overflow-hidden border border-white/10"
+                    whileHover={{ scale: 1.01 }}
                   >
-                    <div className="space-y-2 p-3">
-                      {items.map((service, idx) => (
-                        <motion.button
-                          key={idx}
-                          onClick={() => setSelectedService(service)}
-                          whileHover={{ x: 5 }}
-                          className="w-full text-left p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-white/20"
+                    <button
+                      onClick={() =>
+                        setExpandedCategory(
+                          expandedCategory === category ? null : category
+                        )
+                      }
+                      className={`w-full px-4 py-3 flex items-center justify-between bg-gradient-to-r ${
+                        serviceColors[category as keyof typeof serviceColors]
+                      } hover:opacity-90 transition`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">
+                          {serviceIcons[category as keyof typeof serviceIcons]}
+                        </span>
+                        <span className="font-bold text-sm text-white">
+                          {categoryLabels[category]} ({items.length})
+                        </span>
+                      </div>
+                      <span className="text-lg">
+                        {expandedCategory === category ? "▼" : "▶"}
+                      </span>
+                    </button>
+
+                    <AnimatePresence>
+                      {expandedCategory === category && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="bg-black/50 border-t border-white/10"
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <p className="font-semibold text-xs text-white truncate">
-                                {service.name}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs text-cyan-300">
-                                  📍 {service.distanceKm.toFixed(2)} km
-                                </span>
-                                {service.phone && (
-                                  <span className="text-xs text-emerald-300">
-                                    📞 {service.phone}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-lg">→</span>
+                          <div className="space-y-2 p-3">
+                            {items.map((service, idx) => (
+                              <motion.button
+                                key={idx}
+                                onClick={() => setSelectedService(service)}
+                                whileHover={{ x: 5 }}
+                                className="w-full text-left p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-white/20"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-xs text-white truncate">
+                                      {service.name}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="text-xs text-cyan-300">
+                                        📍 {service.distanceKm.toFixed(2)} km
+                                      </span>
+                                      {service.phone && (
+                                        <span className="text-xs text-emerald-300">
+                                          📞 {service.phone}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <span className="text-lg">→</span>
+                                </div>
+                              </motion.button>
+                            ))}
                           </div>
-                        </motion.button>
-                      ))}
-                    </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
+                ))}
+
+                {loading && (
+                  <div className="glass-panel-bright rounded-[24px] p-4 flex items-center justify-center">
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500"></div>
+                    <span className="ml-2 text-xs text-white/70">Loading services...</span>
+                  </div>
                 )}
-              </AnimatePresence>
+
+                {!loading && services.length === 0 && (
+                  <div className="glass-panel-bright rounded-[24px] p-4 text-center">
+                    <p className="text-xs text-white/60">No services found nearby</p>
+                  </div>
+                )}
+              </div>
             </motion.div>
-          ))}
-
-          {loading && (
-            <div className="glass-panel-bright rounded-[24px] p-4 flex items-center justify-center">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500"></div>
-              <span className="ml-2 text-xs text-white/70">Loading services...</span>
-            </div>
           )}
-
-          {!loading && services.length === 0 && (
-            <div className="glass-panel-bright rounded-[24px] p-4 text-center">
-              <p className="text-xs text-white/60">No services found nearby</p>
-            </div>
-          )}
-        </div>
+        </AnimatePresence>
       </motion.div>
 
-      {/* Detailed Service Modal */}
       <AnimatePresence>
         {selectedService && (
           <motion.div
@@ -173,7 +197,6 @@ export default function NearbyServicesPanel({
                 serviceColors[selectedService.type]
               } shadow-2xl`}
             >
-              {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-4xl">
@@ -184,8 +207,7 @@ export default function NearbyServicesPanel({
                       {selectedService.name}
                     </h3>
                     <p className="text-xs text-white/70 capitalize">
-                      {categoryLabels[selectedService.type] ||
-                        selectedService.type}
+                      {categoryLabels[selectedService.type] || selectedService.type}
                     </p>
                   </div>
                 </div>
@@ -197,7 +219,6 @@ export default function NearbyServicesPanel({
                 </button>
               </div>
 
-              {/* Details */}
               <div className="space-y-3 bg-black/30 rounded-xl p-4 mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">📍</span>
@@ -234,7 +255,6 @@ export default function NearbyServicesPanel({
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-2">
                 <button className="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-lg transition border border-white/30">
                   📍 Navigate
