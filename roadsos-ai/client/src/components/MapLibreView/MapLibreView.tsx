@@ -14,6 +14,19 @@ interface MapLibreViewProps {
   heading?: number;
 }
 
+type SafetyCategory = "hospital" | "ambulance" | "police" | "danger" | "construction" | "crowd";
+
+type SafetyFeature = {
+  id: string;
+  category: SafetyCategory;
+  title: string;
+  subtitle: string;
+  level: "low" | "medium" | "high";
+  icon: string;
+  lon: number;
+  lat: number;
+};
+
 // Helper function to create a circle GeoJSON for accuracy radius
 const createCircleGeoJSON = (lon: number, lat: number, radiusKm: number) => {
   const numberOfPoints = 64;
@@ -41,6 +54,112 @@ const createCircleGeoJSON = (lon: number, lat: number, radiusKm: number) => {
         properties: {},
       },
     ],
+  };
+};
+
+const createSafetyFeatures = (anchorLat: number, anchorLng: number): GeoJSON.FeatureCollection<GeoJSON.Point, SafetyFeature> => {
+  const points: Array<Omit<SafetyFeature, "id" | "lon" | "lat"> & { id: string; lonOffset: number; latOffset: number }> = [
+    {
+      id: "hospital-1",
+      category: "hospital",
+      title: "Central Trauma Center",
+      subtitle: "24/7 emergency care",
+      level: "high",
+      icon: "🏥",
+      lonOffset: 0.008,
+      latOffset: 0.006,
+    },
+    {
+      id: "hospital-2",
+      category: "hospital",
+      title: "City Hospital",
+      subtitle: "ICU and ER available",
+      level: "medium",
+      icon: "🏥",
+      lonOffset: -0.01,
+      latOffset: 0.004,
+    },
+    {
+      id: "ambulance-1",
+      category: "ambulance",
+      title: "Ambulance Unit 112",
+      subtitle: "Fast response nearby",
+      level: "high",
+      icon: "🚑",
+      lonOffset: 0.004,
+      latOffset: -0.004,
+    },
+    {
+      id: "police-1",
+      category: "police",
+      title: "Police Control Room",
+      subtitle: "Traffic and safety response",
+      level: "medium",
+      icon: "🚨",
+      lonOffset: -0.007,
+      latOffset: -0.006,
+    },
+    {
+      id: "danger-1",
+      category: "danger",
+      title: "High Accident Zone",
+      subtitle: "Sharp curve + low visibility",
+      level: "high",
+      icon: "⚠️",
+      lonOffset: 0.015,
+      latOffset: 0.002,
+    },
+    {
+      id: "danger-2",
+      category: "danger",
+      title: "Night Risk Stretch",
+      subtitle: "Poor lighting and crossings",
+      level: "medium",
+      icon: "⚠️",
+      lonOffset: -0.014,
+      latOffset: 0.012,
+    },
+    {
+      id: "construction-1",
+      category: "construction",
+      title: "Road Work Ahead",
+      subtitle: "Lane narrowing and diversions",
+      level: "medium",
+      icon: "🏗️",
+      lonOffset: 0.018,
+      latOffset: -0.01,
+    },
+    {
+      id: "crowd-1",
+      category: "crowd",
+      title: "Congested Junction",
+      subtitle: "Heavy traffic density",
+      level: "low",
+      icon: "🚦",
+      lonOffset: -0.018,
+      latOffset: -0.008,
+    },
+  ];
+
+  return {
+    type: 'FeatureCollection',
+    features: points.map((point) => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [anchorLng + point.lonOffset, anchorLat + point.latOffset],
+      },
+      properties: {
+        id: point.id,
+        category: point.category,
+        title: point.title,
+        subtitle: point.subtitle,
+        level: point.level,
+        icon: point.icon,
+        lon: anchorLng + point.lonOffset,
+        lat: anchorLat + point.latOffset,
+      },
+    })),
   };
 };
 
@@ -114,25 +233,6 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
     map.current.on('load', () => {
       setMapLoaded(true);
 
-      // Add 3D buildings layer if available
-      if (!map.current?.getLayer('building')) {
-        map.current?.addLayer(
-          {
-            id: 'building',
-            source: 'composite',
-            'source-layer': 'building',
-            type: 'fill-extrusion',
-            paint: {
-              'fill-extrusion-color': '#222',
-              'fill-extrusion-height': ['get', 'height'],
-              'fill-extrusion-base': ['get', 'min_height'],
-              'fill-extrusion-opacity': 0.6,
-            },
-          },
-          'waterway'
-        );
-      }
-
       // Add accuracy circle layer
       if (!map.current?.getSource('accuracy-circle')) {
         map.current?.addSource('accuracy-circle', {
@@ -158,6 +258,80 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
             'line-color': '#22d3ee',
             'line-width': 1,
             'line-opacity': 0.3,
+          },
+        });
+      }
+
+      if (!map.current?.getSource('safety-points')) {
+        map.current?.addSource('safety-points', {
+          type: 'geojson',
+          data: createSafetyFeatures(lat, lng),
+        });
+
+        map.current?.addLayer({
+          id: 'safety-danger-glow',
+          type: 'circle',
+          source: 'safety-points',
+          filter: ['==', ['get', 'category'], 'danger'],
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 16, 15, 26],
+            'circle-color': '#ef4444',
+            'circle-opacity': 0.14,
+            'circle-blur': 0.7,
+          },
+        });
+
+        map.current?.addLayer({
+          id: 'safety-construction-glow',
+          type: 'circle',
+          source: 'safety-points',
+          filter: ['==', ['get', 'category'], 'construction'],
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 14, 15, 22],
+            'circle-color': '#f59e0b',
+            'circle-opacity': 0.14,
+            'circle-blur': 0.65,
+          },
+        });
+
+        map.current?.addLayer({
+          id: 'safety-services',
+          type: 'circle',
+          source: 'safety-points',
+          filter: ['in', ['get', 'category'], ['literal', ['hospital', 'ambulance', 'police']]],
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 7, 15, 11],
+            'circle-color': [
+              'match',
+              ['get', 'category'],
+              'hospital', '#38bdf8',
+              'ambulance', '#34d399',
+              'police', '#fb7185',
+              '#22d3ee',
+            ],
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2,
+            'circle-opacity': 0.95,
+          },
+        });
+
+        map.current?.addLayer({
+          id: 'safety-labels',
+          type: 'symbol',
+          source: 'safety-points',
+          layout: {
+            'text-field': ['get', 'title'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 10, 11, 15, 14],
+            'text-offset': [0, 1.2],
+            'text-anchor': 'top',
+            'text-allow-overlap': false,
+            'icon-allow-overlap': true,
+            'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+          },
+          paint: {
+            'text-color': '#f8fafc',
+            'text-halo-color': '#020617',
+            'text-halo-width': 1.5,
           },
         });
       }
@@ -214,6 +388,11 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
       const accuracyKm = accuracy / 1000;
       const circle = createCircleGeoJSON(userLocation.lng, userLocation.lat, accuracyKm);
       (map.current.getSource('accuracy-circle') as any).setData(circle);
+    }
+
+    if (map.current.getSource('safety-points')) {
+      const safetyData = createSafetyFeatures(userLocation.lat, userLocation.lng);
+      (map.current.getSource('safety-points') as any).setData(safetyData);
     }
 
     // Create custom location marker element (Google Maps style)
