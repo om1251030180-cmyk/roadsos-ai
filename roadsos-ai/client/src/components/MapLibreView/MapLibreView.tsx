@@ -36,10 +36,26 @@ type MapPrototypePoint = {
   lng: number;
   badge: string;
   accent: string;
+  iconUrl: string;
   details: Array<{ label: string; value: string }>;
 };
 
 const DATASET_URL = '/data/roadsos-dummy-db.json';
+
+const ICON_BY_CATEGORY: Record<string, string> = {
+  hospital: '/icons/hospital.svg',
+  ambulance: '/icons/ambulance.svg',
+  police: '/icons/police.svg',
+  danger_zone: '/icons/danger.svg',
+  road_quality: '/icons/road-quality.svg',
+  flood_zone: '/icons/flood.svg',
+  traffic: '/icons/traffic.svg',
+  construction: '/icons/construction.svg',
+  cctv: '/icons/cctv.svg',
+  ai_alert: '/icons/ai-alert.svg',
+};
+
+const getIconUrl = (category: string) => ICON_BY_CATEGORY[category] ?? '/icons/danger.svg';
 
 const createCircleGeoJSON = (lon: number, lat: number, radiusKm: number) => {
   const numberOfPoints = 64;
@@ -114,6 +130,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🏥',
       accent: '#22c55e',
+      iconUrl: getIconUrl('hospital'),
       details: [
         { label: 'Beds available', value: String(item.beds_available ?? 'N/A') },
         { label: 'Emergency', value: String(Boolean(item.emergency) ? 'Yes' : 'No') },
@@ -135,6 +152,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🚑',
       accent: Boolean(item.available) ? '#34d399' : '#fb7185',
+      iconUrl: getIconUrl('ambulance'),
       details: [
         { label: 'Available', value: String(Boolean(item.available) ? 'Yes' : 'No') },
         { label: 'ETA', value: `${String(item.eta_minutes ?? 'N/A')} mins` },
@@ -155,6 +173,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🚨',
       accent: '#f43f5e',
+      iconUrl: getIconUrl('police'),
       details: [
         { label: 'Status', value: String(item.status ?? 'N/A') },
         { label: 'Officers available', value: String(item.officers_available ?? 'N/A') },
@@ -173,6 +192,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '⚠️',
       accent: '#ef4444',
+      iconUrl: getIconUrl('danger_zone'),
       details: [
         { label: 'Severity', value: String(item.severity ?? 'N/A') },
         { label: 'Accidents last year', value: String(item.accidents_last_year ?? 'N/A') },
@@ -193,6 +213,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🛣️',
       accent: String(item.status).toLowerCase() === 'poor' ? '#f59e0b' : '#22c55e',
+      iconUrl: getIconUrl('road_quality'),
       details: [
         { label: 'Quality score', value: String(item.quality_score ?? 'N/A') },
         { label: 'Status', value: String(item.status ?? 'N/A') },
@@ -212,6 +233,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🌊',
       accent: '#3b82f6',
+      iconUrl: getIconUrl('flood_zone'),
       details: [
         { label: 'Severity', value: String(item.severity ?? 'N/A') },
         { label: 'Water level', value: String(item.water_level ?? 'N/A') },
@@ -231,6 +253,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🚦',
       accent: String(item.traffic_level).toLowerCase() === 'heavy' ? '#f97316' : '#eab308',
+      iconUrl: getIconUrl('traffic'),
       details: [
         { label: 'Traffic level', value: String(item.traffic_level ?? 'N/A') },
         { label: 'Average speed', value: `${String(item.average_speed ?? 'N/A')} km/h` },
@@ -249,6 +272,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🏗️',
       accent: '#f59e0b',
+      iconUrl: getIconUrl('construction'),
       details: [
         { label: 'Severity', value: String(item.severity ?? 'N/A') },
         { label: 'Lanes blocked', value: String(item.lanes_blocked ?? 'N/A') },
@@ -267,6 +291,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '📷',
       accent: '#a855f7',
+      iconUrl: getIconUrl('cctv'),
       details: [
         { label: 'Status', value: String(item.status ?? 'N/A') },
         { label: 'AI detection', value: String(Boolean(item.ai_detection) ? 'Yes' : 'No') },
@@ -285,6 +310,7 @@ const buildMapPoints = (database: RoadSoSDummyDatabase): MapPrototypePoint[] => 
       lng: item.lng,
       badge: '🧠',
       accent: '#0ea5e9',
+      iconUrl: getIconUrl('ai_alert'),
       details: [
         { label: 'Risk score', value: String(item.risk_score ?? 'N/A') },
         { label: 'Message', value: String(item.message ?? 'N/A') },
@@ -314,10 +340,14 @@ const createMarkerElement = (point: MapPrototypePoint) => {
   const isAlert = point.category === 'danger_zone' || point.category === 'flood_zone' || point.category === 'ai_alert';
 
   button.innerHTML = `
-    <div style="position:relative;display:flex;align-items:center;justify-content:center;">
-      <div style="position:absolute;width:50px;height:50px;border-radius:999px;background:${point.accent};opacity:${isAlert ? 0.18 : 0.12};filter:blur(0px);"></div>
-      <div style="position:relative;width:38px;height:38px;border-radius:999px;background:${point.accent};border:2px solid rgba(255,255,255,0.9);box-shadow:0 12px 28px rgba(0,0,0,0.38);display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;">
-        ${point.badge}
+    <div style="position:relative;display:flex;align-items:center;justify-content:center;transform:perspective(180px) rotateX(18deg);">
+      <div style="position:absolute;bottom:-11px;width:44px;height:16px;border-radius:999px;background:rgba(0,0,0,0.35);filter:blur(10px);"></div>
+      <div style="position:absolute;width:52px;height:52px;border-radius:18px;background:${point.accent};opacity:${isAlert ? 0.2 : 0.14};transform:translateY(1px);"></div>
+      <div style="position:relative;width:44px;height:56px;border-radius:18px 18px 22px 22px;background:linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08));border:1px solid rgba(255,255,255,0.32);box-shadow:0 18px 30px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.28);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+        <div style="position:absolute;inset:5px;border-radius:14px;background:${point.accent};box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -12px 22px rgba(0,0,0,0.14);"></div>
+        <div style="position:relative;width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 16px rgba(0,0,0,0.22);overflow:hidden;">
+          <img src="${point.iconUrl}" alt="${point.title}" style="width:21px;height:21px;display:block;object-fit:contain;" />
+        </div>
       </div>
     </div>
   `;
@@ -350,7 +380,9 @@ const createPopupHtml = (point: MapPrototypePoint) => {
   return `
     <div style="min-width:240px;max-width:280px;padding:14px 15px;border-radius:18px;background:rgba(2,6,23,0.96);color:#fff;font-family:Inter,Arial,sans-serif;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:34px;height:34px;border-radius:999px;background:${point.accent};display:flex;align-items:center;justify-content:center;font-size:18px;">${point.badge}</div>
+        <div style="width:34px;height:34px;border-radius:999px;background:${point.accent};display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px rgba(0,0,0,0.24);overflow:hidden;">
+          <img src="${point.iconUrl}" alt="${point.title}" style="width:18px;height:18px;display:block;object-fit:contain;filter:brightness(0) invert(1);" />
+        </div>
         <div>
           <div style="font-size:15px;font-weight:700;line-height:1.2;">${point.title}</div>
           <div style="font-size:12px;color:#cbd5e1;margin-top:2px;">${point.subtitle}</div>
