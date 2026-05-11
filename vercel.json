@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "name": "roadsos-frontend",
+      "autoExposeSystemEnvs": true,
+      "buildCommand": "cd roadsos-ai/client && npm run build",
+      "outputDirectory": "roadsos-ai/client/.next",
+      "devCommand": "cd roadsos-ai/client && npm run dev",
+      "root": "roadsos-ai/client",
+      "env": [
+        "NEXT_PUBLIC_API_URL"
+      ]
+    }
+  ]
+}

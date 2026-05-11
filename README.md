@@ -240,7 +240,35 @@ cd roadsos-ai/client
 npm run lint
 ```
 
-## 🔑 Environment Variables
+## � Deployment
+
+### Quick Deploy to Vercel (5 minutes)
+
+1. **Push to GitHub**
+   ```bash
+   git push origin main
+   ```
+
+2. **Deploy Frontend to Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Import your GitHub repository
+   - Set root directory to `roadsos-ai/client`
+   - Add environment variables
+   - Deploy!
+
+3. **Deploy Backend to Render**
+   - Go to [render.com](https://render.com)
+   - Create new Web Service
+   - Connect GitHub repo
+   - Set root directory to `server/`
+   - Add API key environment variables
+   - Deploy!
+
+For detailed instructions, see **[DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+### Environment Variable Setup
+
+**See [ENV_SETUP.md](./ENV_SETUP.md) for complete configuration guide**
 
 ### Server (.env)
 
