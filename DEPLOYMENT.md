@@ -3,6 +3,7 @@
 ## Quick Deployment (5 minutes)
 
 ### Prerequisites
+
 - GitHub account with your code pushed
 - Vercel account (free at vercel.com)
 - OpenAI API key
@@ -32,6 +33,7 @@ NEXT_PUBLIC_API_URL=https://your-backend-url.com
 ```
 
 If you're using a local backend for development:
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
@@ -39,6 +41,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 ### Step 3: Redeploy
 
 Trigger a new deployment with the environment variables set:
+
 1. Go to **Deployments**
 2. Click the latest deployment
 3. Click **"Redeploy"** (top right)
@@ -66,6 +69,7 @@ Trigger a new deployment with the environment variables set:
 Get your backend URL (e.g., `https://roadsos-backend.onrender.com`)
 
 Then update your Vercel frontend:
+
 1. Go to Vercel dashboard
 2. Project **Settings** → **Environment Variables**
 3. Update `NEXT_PUBLIC_API_URL` to your Render backend URL
@@ -81,19 +85,27 @@ The frontend uses these API endpoints:
 
 ```javascript
 // Chat endpoint
-const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
-  text: userMessage,
-  location: { lat, lng }
-});
+const response = await axios.post(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/chat`,
+  {
+    text: userMessage,
+    location: { lat, lng },
+  },
+);
 
 // Voice endpoint
-const audioResponse = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/voice`, {
-  text: responseText,
-  voiceId: "voiceId"
-});
+const audioResponse = await axios.post(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/voice`,
+  {
+    text: responseText,
+    voiceId: "voiceId",
+  },
+);
 
 // Nearby services endpoint
-const services = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/nearby?lat=${lat}&lng=${lng}`);
+const services = await axios.get(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/nearby?lat=${lat}&lng=${lng}`,
+);
 ```
 
 ### Ensure Backend Supports CORS
@@ -101,12 +113,14 @@ const services = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/nearby?
 Your Express server should have CORS enabled for Vercel domain:
 
 ```typescript
-import cors from 'cors';
+import cors from "cors";
 
-app.use(cors({
-  origin: ['https://your-vercel-domain.vercel.app', 'http://localhost:3000'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["https://your-vercel-domain.vercel.app", "http://localhost:3000"],
+    credentials: true,
+  }),
+);
 ```
 
 ---
@@ -114,6 +128,7 @@ app.use(cors({
 ## 📝 Environment Variables Checklist
 
 ### Backend (server/.env)
+
 ```
 PORT=4000
 OPENAI_API_KEY=sk-your-key-here
@@ -124,6 +139,7 @@ EMERGENCY_FIRE=101
 ```
 
 ### Frontend (vercel.env, not in repo)
+
 ```
 NEXT_PUBLIC_API_URL=https://your-backend.vercel.app
 ```
@@ -160,18 +176,21 @@ NEXT_PUBLIC_API_URL=https://your-backend.vercel.app
 ## 🧪 Testing Deployment
 
 ### 1. Test Frontend
+
 ```bash
 curl https://your-vercel-url.vercel.app
 # Should return HTML with your app
 ```
 
 ### 2. Test Backend
+
 ```bash
 curl https://your-backend-url/api/health
 # Should return { status: "ok" }
 ```
 
 ### 3. Test Chat API
+
 ```bash
 curl -X POST https://your-backend-url/api/chat \
   -H "Content-Type: application/json" \
@@ -179,6 +198,7 @@ curl -X POST https://your-backend-url/api/chat \
 ```
 
 ### 4. Test Voice API
+
 ```bash
 curl -X POST https://your-backend-url/api/voice \
   -H "Content-Type: application/json" \
@@ -190,21 +210,25 @@ curl -X POST https://your-backend-url/api/voice \
 ## 🚨 Troubleshooting
 
 ### Frontend shows "API is unreachable"
+
 - Check `NEXT_PUBLIC_API_URL` environment variable
 - Ensure backend is running
 - Check CORS settings on backend
 
 ### Voice isn't working
+
 - Verify `ELEVENLABS_API_KEY` is set
 - Check `/api/voice/health` endpoint
 - Review backend logs
 
 ### Chat returns empty responses
+
 - Verify `OPENAI_API_KEY` is set
 - Check OpenAI quota and billing
 - Review backend logs with `npm run dev`
 
 ### Deployment fails
+
 - Check Node version (should be 18+)
 - Verify all dependencies are installed
 - Check build logs in Vercel dashboard
@@ -217,7 +241,6 @@ After deployment:
 
 1. **Frontend URL**: Check Vercel dashboard
    - Format: `https://roadsos-ai.vercel.app` or custom domain
-   
 2. **Backend URL**: Check Render/Railway dashboard
    - Format: `https://roadsos-backend.onrender.com`
 
@@ -228,6 +251,7 @@ After deployment:
 ## 🔄 CI/CD Pipeline (GitHub Actions)
 
 Your code is automatically tested on push:
+
 - TypeScript compilation check
 - ESLint validation
 - Build verification
@@ -239,11 +263,13 @@ Create `.github/workflows/deploy.yml` for automatic deployments.
 ## 📈 Monitoring & Logs
 
 ### Vercel
+
 - Dashboard shows deployment status
 - Logs available in Deployments tab
 - Performance metrics available
 
 ### Render/Backend
+
 - Logs available in dashboard
 - Monitor CPU/Memory usage
 - Set up alerts for errors
@@ -253,18 +279,22 @@ Create `.github/workflows/deploy.yml` for automatic deployments.
 ## 💰 Cost Estimation
 
 **Vercel (Frontend)**
+
 - Free tier: Perfect for MVP
 - Pro tier: $20/month for priority support
 
 **Render (Backend)**
+
 - Free tier: Limited (recommended for demo)
 - Pay-as-you-go: Starts at $7/month
 
 **OpenAI API**
+
 - ~$0.002 per chat request
 - ~$0.03 per voice generation (500 chars)
 
 **ElevenLabs API**
+
 - ~$0.03 per 1,000 characters
 - Free tier: 10,000 characters/month
 

@@ -34,6 +34,7 @@ EMERGENCY_FIRE=101
 ### How to Get API Keys
 
 #### OpenAI API Key
+
 1. Go to [platform.openai.com](https://platform.openai.com)
 2. Sign up or log in
 3. Click your profile → **"API keys"**
@@ -43,6 +44,7 @@ EMERGENCY_FIRE=101
 **Cost**: ~$0.0015 per 1K tokens (~500 words)
 
 #### ElevenLabs API Key (Optional)
+
 1. Go to [elevenlabs.io](https://elevenlabs.io)
 2. Sign up or log in
 3. Click your profile → **"API Keys"**
@@ -72,6 +74,7 @@ NEXT_PUBLIC_API_URL=https://your-backend-domain.com
 ```
 
 Replace `your-backend-domain.com` with:
+
 - Render: `https://your-app.onrender.com`
 - Railway: `https://your-app-prod.up.railway.app`
 - Heroku: `https://your-app.herokuapp.com`
@@ -83,12 +86,14 @@ Replace `your-backend-domain.com` with:
 ### 1. Backend Deployment (Render Example)
 
 **Environment Variables to Set:**
+
 - `OPENAI_API_KEY` = Your OpenAI key
 - `ELEVENLABS_API_KEY` = Your ElevenLabs key
 - `PORT` = 4000
 - `NODE_ENV` = production
 
 **Render Configuration:**
+
 - Start Command: `npm run dev` (or `npm start` if applicable)
 - Build Command: `npm install && npm run build`
 - Root Directory: `server/`
@@ -98,12 +103,14 @@ Replace `your-backend-domain.com` with:
 ### 2. Frontend Deployment (Vercel Example)
 
 **Vercel Configuration:**
+
 - Root Directory: `roadsos-ai/client`
 - Build Command: `npm run build` (auto-detected)
 - Output Directory: `.next` (auto-detected)
 - Framework: Next.js (auto-detected)
 
 **Environment Variables:**
+
 - `NEXT_PUBLIC_API_URL` = Your backend URL from step 1
 
 **Result**: Your frontend URL (e.g., `https://roadsos.vercel.app`)
@@ -136,6 +143,7 @@ Replace `your-backend-domain.com` with:
 ## 🧪 Testing Environment Variables
 
 ### Verify Backend Variables
+
 ```bash
 cd server
 npm run dev
@@ -147,6 +155,7 @@ npm run dev
 ```
 
 ### Verify Frontend Configuration
+
 ```bash
 cd roadsos-ai/client
 NEXT_PUBLIC_API_URL=http://localhost:4000 npm run dev
@@ -159,42 +168,46 @@ NEXT_PUBLIC_API_URL=http://localhost:4000 npm run dev
 
 ## 📝 Environment Variable Reference
 
-| Variable | Backend | Frontend | Required | Example |
-|----------|---------|----------|----------|---------|
-| OPENAI_API_KEY | ✅ | ❌ | Yes | sk-abc123... |
-| ELEVENLABS_API_KEY | ✅ | ❌ | No | abc123def... |
-| NEXT_PUBLIC_API_URL | ❌ | ✅ | No* | https://api.example.com |
-| PORT | ✅ | ❌ | No | 4000 |
-| NODE_ENV | ✅ | ❌ | No | production |
-| EMERGENCY_AMBULANCE | ✅ | ❌ | No | 112 |
-| EMERGENCY_POLICE | ✅ | ❌ | No | 100 |
-| EMERGENCY_FIRE | ✅ | ❌ | No | 101 |
+| Variable            | Backend | Frontend | Required | Example                 |
+| ------------------- | ------- | -------- | -------- | ----------------------- |
+| OPENAI_API_KEY      | ✅      | ❌       | Yes      | sk-abc123...            |
+| ELEVENLABS_API_KEY  | ✅      | ❌       | No       | abc123def...            |
+| NEXT_PUBLIC_API_URL | ❌      | ✅       | No\*     | https://api.example.com |
+| PORT                | ✅      | ❌       | No       | 4000                    |
+| NODE_ENV            | ✅      | ❌       | No       | production              |
+| EMERGENCY_AMBULANCE | ✅      | ❌       | No       | 112                     |
+| EMERGENCY_POLICE    | ✅      | ❌       | No       | 100                     |
+| EMERGENCY_FIRE      | ✅      | ❌       | No       | 101                     |
 
-*Defaults to `http://localhost:4000` in development
+\*Defaults to `http://localhost:4000` in development
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### "Chat returns generic responses"
+
 - Check `OPENAI_API_KEY` is set correctly
 - Verify API key is active (not revoked)
 - Check OpenAI billing/quota settings
 - Look for errors in backend logs: `npm run dev`
 
 ### "Voice isn't working"
+
 - Check `ELEVENLABS_API_KEY` is set
 - Verify API key is active
 - Check ElevenLabs dashboard for usage
 - Test `/api/voice/health` endpoint
 
 ### "Build fails in Vercel"
+
 - Ensure all required environment variables are set
 - Check Node.js version compatibility
 - Review build logs in Vercel dashboard
 - Verify dependencies are installed
 
 ### "Backend URL not accessible from frontend"
+
 - Ensure `NEXT_PUBLIC_API_URL` is set correctly
 - Check CORS is enabled on backend
 - Verify backend is running and accessible
@@ -205,16 +218,19 @@ NEXT_PUBLIC_API_URL=http://localhost:4000 npm run dev
 ## 🔄 Environment Variables by Stage
 
 ### Development
+
 - Backend: `.env` file locally
 - Frontend: No `.env` needed (defaults to localhost:4000)
 - API keys: Can use test keys
 
 ### Staging
+
 - Backend: Deployed to test server with prod keys
 - Frontend: Deployed to staging URL
 - API keys: Use production keys (carefully monitor usage)
 
 ### Production
+
 - Backend: Deployed to production server
 - Frontend: Deployed to Vercel
 - API keys: Production keys with spending limits set
@@ -225,6 +241,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000 npm run dev
 ## 📞 Support
 
 Need help setting up environment variables?
+
 1. Check the `.env.example` files
 2. Review this document
 3. Check individual setup guides:

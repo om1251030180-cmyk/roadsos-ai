@@ -3,6 +3,7 @@
 ## 3-Step Deployment (30 minutes total)
 
 ### Step 1: Backend Deployment (Render)
+
 ```bash
 1. Go to render.com → Create Web Service
 2. Connect: om1251030180-cmyk/roadsos-ai
@@ -14,6 +15,7 @@
 ```
 
 ### Step 2: Frontend Deployment (Vercel)
+
 ```bash
 1. Go to vercel.com → Add Project
 2. Import: om1251030180-cmyk/roadsos-ai
@@ -24,6 +26,7 @@
 ```
 
 ### Step 3: Test
+
 ```bash
 1. Open your Vercel URL
 2. Click AI companion → Test chat
@@ -69,11 +72,11 @@
 
 ## 🆘 Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| "API unreachable" | Set `NEXT_PUBLIC_API_URL` in Vercel |
-| "Build failed" | Check root directory is `roadsos-ai/client` |
-| "No chat response" | Verify `OPENAI_API_KEY` is correct |
+| Issue               | Solution                                              |
+| ------------------- | ----------------------------------------------------- |
+| "API unreachable"   | Set `NEXT_PUBLIC_API_URL` in Vercel                   |
+| "Build failed"      | Check root directory is `roadsos-ai/client`           |
+| "No chat response"  | Verify `OPENAI_API_KEY` is correct                    |
 | "Voice not working" | Check `ELEVENLABS_API_KEY` (or falls back to browser) |
 
 ---

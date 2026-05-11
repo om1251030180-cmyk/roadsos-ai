@@ -245,6 +245,7 @@ npm run lint
 ### Quick Deploy to Vercel (5 minutes)
 
 1. **Push to GitHub**
+
    ```bash
    git push origin main
    ```
