@@ -110,18 +110,6 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
       bearing: 0,
     });
 
-    // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
-
-    // Add geolocation control
-    const geolocate = new maplibregl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true,
-      },
-      trackUserLocation: true,
-    });
-    map.current.addControl(geolocate, 'bottom-right');
-
     // Mark as loaded
     map.current.on('load', () => {
       setMapLoaded(true);
@@ -323,19 +311,11 @@ export const MapLibreView: React.FC<MapLibreViewProps> = React.memo(({
   return (
     <div
       ref={mapContainer}
-      className="relative w-full h-full rounded-lg overflow-hidden border border-blue-500/20 pointer-events-auto"
+      className="relative w-full h-full overflow-hidden pointer-events-auto"
       style={{
         background: '#0a0a0a',
       }}
     >
-      {!mapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-3"></div>
-            <p className="text-white/70 text-sm">Loading premium map...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 });
