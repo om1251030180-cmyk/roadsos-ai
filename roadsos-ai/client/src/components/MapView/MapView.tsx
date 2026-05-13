@@ -9,7 +9,11 @@ function getUserLocationSupported() {
   return typeof navigator !== "undefined" && "geolocation" in navigator;
 }
 
-export default function MapView() {
+interface MapViewProps {
+  onPointSelect?: (data: any) => void;
+}
+
+export default function MapView({ onPointSelect }: MapViewProps) {
   const [user, setUser] = useState<Coords | null>(null);
   const [accuracy, setAccuracy] = useState<number>(0);
   const [heading, setHeading] = useState<number>(0);
@@ -78,19 +82,18 @@ export default function MapView() {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden text-white">
+    <div className="absolute inset-0 w-full h-full overflow-hidden text-white" style={{ zIndex: 10 }}>
       {/* Full-screen map */}
-      <div className="absolute inset-0 z-0">
-        <MapLibreView
-          lat={user?.lat ?? center.lat}
-          lng={user?.lng ?? center.lng}
-          zoom={14}
-          onLocationClick={handleLocationClick}
-          userLocation={user || undefined}
-          accuracy={accuracy}
-          heading={heading}
-        />
-      </div>
+      <MapLibreView
+        lat={user?.lat ?? center.lat}
+        lng={user?.lng ?? center.lng}
+        zoom={14}
+        onLocationClick={handleLocationClick}
+        onPointSelect={onPointSelect}
+        userLocation={user || undefined}
+        accuracy={accuracy}
+        heading={heading}
+      />
     </div>
   );
 }

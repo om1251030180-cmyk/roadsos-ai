@@ -62,6 +62,25 @@ body {
   font-family: var(--font-geist-sans), Inter, Arial, Helvetica, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* MapLibre GL JS specific fixes */
+.maplibregl-canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.maplibregl-canvas-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.maplibregl-map {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .spatial-shell {
@@ -247,6 +266,40 @@ body {
   50% {
     box-shadow: 0 0 50px rgba(34, 211, 238, 0.6), inset 0 0 50px rgba(34, 211, 238, 0.2);
   }
+}
+
+/* ==================== 3D MARKER STYLES ==================== */
+
+.marker-3d-container {
+  pointer-events: auto;
+  will-change: transform;
+}
+
+.marker-3d-pin {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.marker-3d-pin:hover {
+  filter: brightness(1.2) saturate(1.1);
+}
+
+@keyframes roadsos-marker-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 20px rgba(0, 0, 0, 0);
+  }
+}
+
+.marker-pulse {
+  animation: roadsos-marker-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulseRings {

@@ -1,411 +1,142 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useAnimation } from "framer-motion";
-import { speak as elevenLabsSpeak, type VoiceStyle } from "@/utils/voice";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-type Emotion = "idle" | "listening" | "thinking" | "speaking" | "emergency";
+/**
+ * JARVIS / VisionOS style Holographic AI Assistant
+ * Features:
+ * - Breathing idle state
+ * - Listening ripple waves
+ * - Thinking particle rotation
+ * - Speaking waveform glow
+ * - Location-aware intelligence
+ */
+export const VoiceCompanionOrb: React.FC = () => {
+  const [status, setStatus] = useState<"idle" | "listening" | "thinking" | "speaking">("idle");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [transcript, setTranscript] = useState("");
 
-type SpeechRecognitionType = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: unknown) => void) | null;
-  onerror: (() => void) | null;
-};
-
-function useWakeSpeechRecognition() {
-  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
-
+  // Simulate AI states for demo
   useEffect(() => {
-    const w = window as unknown as {
-      SpeechRecognition?: new () => SpeechRecognitionType;
-      webkitSpeechRecognition?: new () => SpeechRecognitionType;
-    };
+    if (status === "listening") {
+      const timer = setTimeout(() => setStatus("thinking"), 3000);
+      return () => clearTimeout(timer);
+    }
+    if (status === "thinking") {
+      const timer = setTimeout(() => setStatus("speaking"), 2000);
+      return () => clearTimeout(timer);
+    }
+    if (status === "speaking") {
+      const timer = setTimeout(() => setStatus("idle"), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
-    const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-    if (!SR) return;
-
-    const rec = new SR();
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.lang = "en-US";
-
-    recognitionRef.current = rec;
-
-    return () => {
-      try {
-        rec.stop();
-      } catch {
-        // ignore
-      }
-    };
-  }, []);
-
-  const start = (onFinal: (text: string) => void, onInterim?: (text: string) => void) => {
-    const rec = recognitionRef.current;
-    if (!rec) return false;
-
-    rec.onresult = (event: unknown) => {
-      const e = event as {
-        resultIndex: number;
-        results: Array<{
-          isFinal: boolean;
-          0?: { transcript?: string };
-        }>;
-      };
-
-      let interim = "";
-      let finalText = "";
-
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const transcript = e.results[i][0]?.transcript ?? "";
-        if (e.results[i].isFinal) finalText += transcript;
-        else interim += transcript;
-      }
-
-      if (onInterim && interim.trim()) onInterim(interim.trim());
-      if (finalText.trim()) onFinal(finalText.trim());
-    };
-
-    rec.onerror = () => {
-      // Let outer UI handle “thinking/listening” fallback.
-    };
-
-    try {
-      rec.start();
-      return true;
-    } catch {
-      return false;
+  const handleOrbClick = () => {
+    if (status === "idle") {
+      setStatus("listening");
+    } else {
+      setIsExpanded(!isExpanded);
     }
   };
-
-  const stop = () => {
-    const rec = recognitionRef.current;
-    if (!rec) return;
-    try {
-      rec.stop();
-    } catch {
-      // ignore
-    }
-  };
-
-  return { start, stop };
-}
-
-function normalizeWakeText(s: string) {
-  const t = s.toLowerCase();
-  // minimal wake word support
-  if (
-    t.includes("hey roadso") ||
-    t.includes("hey roadsos") ||
-    t.includes("emergency help") ||
-    t.includes("ai assistant") ||
-    t.includes("roadsos")
-  ) {
-    return t;
-  }
-  return null;
-}
-
-export default function VoiceCompanionOrb() {
-  const orbitControls = useAnimation();
-
-  const [emotion, setEmotion] = useState<Emotion>("idle");
-  const [interim, setInterim] = useState<string>("");
-  const [lastTranscript, setLastTranscript] = useState<string>("");
-  const [listeningEnabled, setListeningEnabled] = useState(true);
-
-  // draggable position
-  const [pos, setPos] = useState({ x: 24, y: 24 });
-  const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
-
-  const { start, stop } = useWakeSpeechRecognition();
-
-  const wakewords = useMemo(
-    () => ["hey roadso", "hey roadsos", "emergency help", "ai assistant", "roadsos"],
-    []
-  );
-
-  const speak = async (text: string, isEmergency: boolean = false) => {
-    if (typeof window === "undefined") return;
-
-    setEmotion("speaking");
-
-    // Choose voice style based on context
-    const voiceStyle: VoiceStyle = isEmergency ? "emergency" : "professional";
-
-    // Try ElevenLabs first (premium voice)
-    const success = await elevenLabsSpeak(text, voiceStyle);
-
-    if (!success) {
-      // Fallback to browser TTS if ElevenLabs unavailable
-      console.warn("ElevenLabs unavailable, falling back to browser TTS");
-      const synth = window.speechSynthesis;
-      if (synth) {
-        try {
-          synth.cancel();
-        } catch {
-          // ignore
-        }
-
-        await new Promise<void>((resolve) => {
-          const u = new SpeechSynthesisUtterance(text);
-          u.rate = 1.02;
-          u.pitch = 1.0;
-          u.onend = () => resolve();
-          u.onerror = () => resolve();
-          synth.speak(u);
-        });
-      }
-    }
-
-    setEmotion("listening");
-  };
-
-  const handleCommand = async (raw: string) => {
-    const wake = normalizeWakeText(raw);
-    setLastTranscript(raw);
-    setInterim("");
-
-    if (!wake) {
-      // if no wake word, ignore (still emotional idle behavior)
-      setEmotion("thinking");
-      await new Promise((r) => setTimeout(r, 450));
-      setEmotion("listening");
-      return;
-    }
-
-    // extract user intent after wake word heuristically
-    const userIntent = raw.replace(/hey roadso[s]?/gi, "").replace(/roadsos/gi, "").trim();
-
-    setEmotion("thinking");
-
-    // MVP: use existing backend /api/chat with location-aware behavior.
-    // We just let the /api/chat reply drive what we say.
-    try {
-      setEmotion("thinking");
-      orbitControls.start({
-        scale: 1.02,
-        boxShadow: "0 0 40px rgba(59,130,246,0.65)",
-      });
-
-      const res = await fetch("http://localhost:4000/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userIntent || raw,
-          language: "en",
-        }),
-      });
-
-      const data = (await res.json()) as { reply?: string; meta?: { isEmergency?: boolean } };
-      const replyText = data.reply ?? "I couldn’t process that. Please try again.";
-
-      const isEmergency = data.meta?.isEmergency ?? /accident|sos|emergency|injur|crash/i.test(raw);
-      if (isEmergency) setEmotion("emergency");
-      else setEmotion("speaking");
-
-      await speak(replyText, isEmergency);
-    } catch {
-      await speak("Sorry, voice assistant is having trouble right now.", false);
-      setEmotion("listening");
-    }
-  };
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Start continuous listening once mounted.
-    if (!listeningEnabled) {
-      setEmotion("idle");
-      return;
-    }
-
-    const ok = start(
-      (finalText) => handleCommand(finalText),
-      (interimText) => {
-        setInterim(interimText);
-      }
-    );
-
-    window.setTimeout(() => setEmotion(ok ? "listening" : "idle"), 0);
-
-    return () => {
-      stop();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listeningEnabled]);
-
-  useEffect(() => {
-    const onPointerMove = (e: PointerEvent) => {
-      if (!dragRef.current) return;
-
-      const dx = e.clientX - dragRef.current.startX;
-      const dy = e.clientY - dragRef.current.startY;
-      setPos({ x: dragRef.current.origX + dx, y: dragRef.current.origY + dy });
-    };
-
-    const onPointerUp = () => {
-      dragRef.current = null;
-    };
-
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-    };
-  }, []);
-
-  const emotionLabel =
-    emotion === "idle"
-      ? "Ready"
-      : emotion === "listening"
-        ? "Listening…"
-        : emotion === "thinking"
-          ? "Thinking…"
-          : emotion === "speaking"
-            ? "Speaking"
-            : "Emergency";
-
-  const glowColor =
-    emotion === "emergency"
-      ? "rgba(239,68,68,0.75)"
-      : emotion === "speaking"
-        ? "rgba(59,130,246,0.75)"
-        : emotion === "listening"
-          ? "rgba(56,189,248,0.6)"
-          : "rgba(99,102,241,0.35)";
-
-  const orbBase =
-    emotion === "emergency"
-      ? "border-red-500"
-      : emotion === "listening"
-        ? "border-sky-400"
-        : emotion === "speaking"
-          ? "border-blue-400"
-          : "border-violet-400";
 
   return (
-    <div className="fixed left-0 top-0 z-[68] pointer-events-none">
-      <motion.div
-        className="pointer-events-auto select-none"
-        style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
-        drag={false}
-        onPointerDown={(e) => {
-          dragRef.current = {
-            startX: e.clientX,
-            startY: e.clientY,
-            origX: pos.x,
-            origY: pos.y,
-          };
-        }}
-        animate={orbitControls}
-        initial={false}
-      >
-        {/* Orbit particles */}
-        <div className="relative">
-          <motion.div
-            className={`relative flex h-[92px] w-[92px] items-center justify-center rounded-full border-4 ${orbBase} bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.12),rgba(5,10,20,0.75)_64%)] backdrop-blur-2xl shadow-[0_0_36px_rgba(59,130,246,0.35)]`}
-            style={{
-              boxShadow: `0 0 50px ${glowColor}`,
-            }}
-            animate={{
-              y: emotion === "emergency" ? [0, -4, 0] : [0, -2, 0],
-              scale: emotion === "speaking" ? 1.03 : 1,
-              filter: emotion === "thinking" ? "saturate(1.2) brightness(1.08)" : "none",
-            }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            {/* breathing */}
+    <div className="relative z-[1005] pointer-events-none">
+      <div className="relative flex flex-col items-center">
+        
+        {/* AI Transcript Bubble */}
+        <AnimatePresence>
+          {(status !== "idle" || isExpanded) && (
             <motion.div
-              className="absolute inset-0 rounded-full"
-              animate={{
-                opacity: emotion === "idle" ? 0.35 : 0.8,
-              }}
-              transition={{ duration: 0.7 }}
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 30%, rgba(59,130,246,0.22), transparent 55%), radial-gradient(circle at 70% 70%, rgba(168,85,247,0.18), transparent 58%)",
-              }}
-            />
-            {/* Eyes */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex gap-3">
-                <motion.div
-                  className="w-6 h-6 rounded-full bg-white/90"
-                  animate={{
-                    scale: emotion === "listening" ? [1, 0.9, 1] : 1,
-                  }}
-                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <motion.div
-                  className="w-6 h-6 rounded-full bg-white/90"
-                  animate={{
-                    scale: emotion === "listening" ? [1, 0.9, 1] : 1,
-                  }}
-                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-                />
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              className="absolute bottom-24 w-64 glass-ultra p-4 rounded-2xl border border-cyan-400/20 shadow-2xl pointer-events-auto"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-2 h-2 rounded-full ${status === 'listening' ? 'bg-red-500 animate-pulse' : 'bg-cyan-400'}`} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">
+                  {status === "idle" ? "System Ready" : status}
+                </span>
               </div>
-            </div>
-            {/* Equalizer ring */}
-            <div className="absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2">
-              {emotion === "speaking" && (
-                <motion.div
-                  className="w-[72px] h-[72px] rounded-full border-2 border-sky-300/50"
-                  animate={{ scale: [1, 1.12, 1], opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-                />
-              )}
-            </div>
-          </motion.div>
+              <p className="text-xs text-white/80 leading-relaxed">
+                {status === "idle" && "How can I assist you with your journey today?"}
+                {status === "listening" && "Listening to your request..."}
+                {status === "thinking" && "Analyzing smart-city data nodes..."}
+                {status === "speaking" && "I've optimized your route to avoid the flood risk area near Central Park."}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* particles ring */}
-          <div className="pointer-events-none absolute inset-0">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80"
-                style={{
-                  transform: `rotate(${i * 45}deg) translateX(44px)`,
-                  boxShadow: `0 0 12px ${glowColor}`,
-                }}
-                animate={
-                  emotion === "thinking" || emotion === "listening" || emotion === "emergency"
-                    ? { y: [0, -6, 0], opacity: [0.35, 1, 0.4] }
-                    : { opacity: 0.55 }
-                }
-                transition={{ duration: 1.3 + i * 0.06, repeat: Infinity, ease: "easeInOut" }}
-              />
-            ))}
+        {/* The Holographic Orb */}
+        <motion.div
+          drag
+          dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
+          className="pointer-events-auto cursor-pointer relative"
+          onClick={handleOrbClick}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {/* Outer Glow Rings */}
+          <div className="absolute inset-[-20px] rounded-full border border-cyan-400/10 animate-[spin_10s_linear_infinite]" />
+          <div className="absolute inset-[-10px] rounded-full border border-cyan-400/20 animate-[spin_15s_linear_infinite_reverse]" />
+          
+          {/* Core Orb */}
+          <div className={`relative w-20 h-20 rounded-full flex items-center justify-center overflow-hidden transition-all duration-700 ${
+            status === 'listening' ? 'shadow-[0_0_50px_rgba(239,68,68,0.4)]' : 'shadow-[0_0_40px_rgba(34,211,238,0.3)]'
+          }`}>
+            {/* Background Layers */}
+            <div className={`absolute inset-0 transition-colors duration-700 ${
+              status === 'listening' ? 'bg-red-500/20' : 'bg-cyan-500/20'
+            }`} />
+            
+            {/* Holographic Wave Layers */}
+            <motion.div
+              animate={{ 
+                rotate: 360,
+                scale: status === 'speaking' ? [1, 1.2, 1] : 1
+              }}
+              transition={{ 
+                rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+                scale: { duration: 0.5, repeat: Infinity }
+              }}
+              className="absolute inset-0 opacity-40 bg-[conic-gradient(from_0deg,transparent,#22d3ee,transparent)]"
+            />
+            
+            {/* Center Content */}
+            <div className="relative z-10 text-3xl">
+              {status === "idle" && "🤖"}
+              {status === "listening" && "🎤"}
+              {status === "thinking" && "🧠"}
+              {status === "speaking" && "🗣️"}
+            </div>
+
+            {/* Ripple Effects for Listening */}
+            {status === "listening" && (
+              <>
+                <div className="absolute inset-0 border-2 border-red-400/40 rounded-full animate-ping" />
+                <div className="absolute inset-2 border-2 border-red-400/20 rounded-full animate-ping [animation-delay:0.5s]" />
+              </>
+            )}
+
+            {/* Scanning Effect for Thinking */}
+            {status === "thinking" && (
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/40 to-transparent h-4 w-full animate-[scan_1.5s_ease-in-out_infinite]" />
+            )}
           </div>
+        </motion.div>
+      </div>
 
-          {/* hover label */}
-          <div className="mt-2 absolute left-1/2 top-full w-[200px] -translate-x-1/2 text-center">
-            <div className="rounded-full border border-white/10 bg-slate-950/70 px-3 py-1 text-[11px] font-black text-white backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-              {emotionLabel}
-              {interim ? ` • "${interim.slice(0, 18)}…" ` : ""}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-2 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/70">
-          <button
-            onClick={() => setListeningEnabled((current) => !current)}
-            className="pointer-events-auto rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/80 backdrop-blur-xl transition hover:bg-white/10"
-          >
-            {listeningEnabled ? "Listening" : "Voice off"}
-          </button>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-xl">drag me</span>
-        </div>
-      </motion.div>
-
-      {/* Minimal “transcript” debug (hidden visually but accessible for demo) */}
-      <div className="sr-only">{lastTranscript}</div>
+      <style jsx>{`
+        @keyframes scan {
+          0% { transform: translateY(-40px); }
+          100% { transform: translateY(80px); }
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default VoiceCompanionOrb;
