@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import MapView from "../components/MapView/MapView";
+import dynamic from "next/dynamic";
 import TopBar from "../components/CommandCenter/TopBar";
 import LeftDock from "../components/CommandCenter/LeftDock";
 import BottomDock from "../components/CommandCenter/BottomDock";
 import RightPanel from "../components/CommandCenter/RightPanel";
 
-import dynamic from "next/dynamic";
 const CinematicEnvironment = dynamic(
   () => import("../components/CinematicEmergency/CinematicEnvironment"),
   { ssr: false }
 );
+const MapView = dynamic(() => import("../components/MapView/MapView"), { ssr: false });
 
 export default function Home() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
